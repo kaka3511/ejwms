@@ -1,0 +1,35 @@
+.page-sidebar-menu i {
+	position: relative;
+	top:5px;
+	width:24px !important;
+	height:24px;
+}
+
+.icon-alert {
+	background-image: url("/ejwms/images/index/alert.png");
+}
+.icon-business {
+	background-image: url("/ejwms/images/index/business.png");
+}
+.icon-content {
+	background-image: url("/ejwms/images/index/content.png");
+}
+.icon-goods {
+	background-image: url("/ejwms/images/index/goods.png");
+}
+.icon-logout {
+	background-image: url("/ejwms/images/index/logout.png");
+}
+.icon-organization {
+	background-image: url("/ejwms/images/index/organization.png");
+}
+
+.icon-qbank {
+	background-image: url("/ejwms/images/index/question.png");
+}
+.icon-system {
+	background-image: url("/ejwms/images/index/system.png");
+}
+.icon-home-page {
+	background-image: url("/ejwms/images/index/home.png");
+}

@@ -1,0 +1,213 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+   	<title>社区动态</title>
+   	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">  
+   	<%@ include file="../../base/taglib.jsp"%>
+   	<%@ include file="../../base/importCss.jsp"%>
+   	
+   	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+   	<%@ include file="../../base/importJs.jsp"%>
+   	<!-- END PAGE LEVEL SCRIPTS -->
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+<ul class="page-breadcrumb breadcrumb">
+                  <li>
+                     <i class="icon-cog"></i>内容管理
+                  </li>
+                  <li>社区动态</li>
+               </ul>
+<div class="panel panel-info">
+		
+		   	<div class="panel-heading">
+					    
+					  <form class='form-inline' action="">
+		   						<div class='form-group'>
+									    <label>标题：</label>
+									    <input class='form-control' type='text' id='query_title'>
+		   						</div>
+		   						
+		   						<div class='form-group  pull-right'>
+									    <a class='btn btn-primary' href="<c:url value='/content/hot/add'/>">发布信息</a>
+		   						</div>
+					   
+		   			</form>
+					  
+			</div>
+			   	<div class="panel-body">
+				   	<div >
+					    <table id="jqGrid"></table>
+					    <div id="jqGridPager"></div>
+					</div>
+					 <!-- <div id="mysearch"></div>
+					<button class='btn btn-primary' id='btn_search'>搜索</button>
+					<button class='btn btn-primary' id='trigger'>点击</button>   -->
+			   	</div>
+
+</div>
+</body>
+<script type="text/javascript">
+$(function() {
+	//存储页面到sessionStorage 
+	function assignCurrentContentHotPage(){
+		if(!sessionStorage.getItem("currentContentHotPage"))
+			return 1;
+		else 
+			return sessionStorage.getItem("currentContentHotPage");
+	}
+	var currentRegisterApplyPage;
+	currentContentHotPage = assignCurrentContentHotPage();
+	$(window).resize(function(){
+		$("#jqGrid").setGridHeight($(window).height()-$('.panel-body').offset().top-80);
+	});
+	$("#jqGrid").jqGrid({
+        url:"<c:url value='/content/hot'/>",
+		// we set the changes to be made at client side using predefined word clientArray
+        editurl: 'clientArray',
+        datatype: "json",
+        page: currentContentHotPage,
+        jsonReader:{
+        	root:'data',
+        	repeatitems: true,
+        },
+        cmTemplate:{
+        	align:'center',
+        	sortable:false
+        },
+        colModel: [
+            {
+				label: 'ID',
+                name: 'id',
+				key: true,
+				hidden:true,
+				search:false,
+            },
+     /*        {
+				label: '类型',
+                name: 'type',
+                width:100,
+                formatter:'select', 
+                editoptions:{value:"1:办事指南;2:康复活动;3:慈善活动;4:健康计划;5:健康生活;6:健康贴士"},
+                stype:'text', 
+                searchoptions:{
+                	//value:"1:办事指南;2:康复活动;3:慈善活动;4:健康计划;5:健康生活;6:健康贴士"
+                },
+            
+            }, */
+            {
+				label : '标题',
+                name: 'title',
+                width:200,
+            },
+            {
+				label: '摘要',
+                name: 'summary',
+                width:400,
+                search:false,
+                searchoptions:{
+                	sopt:['cn'],
+                }
+            },
+           
+            {
+				label: '发布时间',
+                name: 'updatetime',
+                width:100,
+                search:false,
+ 				formatter:function(cellvalue, options, rowObject){
+ 					var cell=0;
+                	if(cellvalue>10000000000){
+                		cell=cellvalue/1000;
+                	}else{
+                		cell=cellvalue;
+                	}
+                	return ToDate("Y-m-d H:i:s",cell);
+                }
+            },
+           
+            
+            {
+				label: '操作',
+                name: 'operation',
+                editable: false,
+                search:false,
+                formatter:operFormat,
+                unformat:operUnFormat,
+                width:120,
+            
+            }
+        ],
+        gridComplete : function() {
+			$('td .del').off('click',del);
+			$('td .del').on('click',del);
+		},
+		loadonce: true,
+		viewrecords: true,
+		height:$(window).height()-$('.panel-body').offset().top-80,
+        shrinkToFit :true,
+        autowidth:true,
+        rownumbers:true,
+        rownumWidth:50,
+        rowNum: 10,
+        pager: "#jqGridPager"
+    });
+	function del(event) {
+		event.preventDefault();
+		if(confirm("确认删除该条记录吗？")){
+			var href = $(this).attr('href');
+			$.ajax({
+				url : href,
+				dataType : 'json',
+				type : 'get',
+				success : function(data, textStatus, jqXHR) {
+					alert("删除成功！");
+					$("#jqGrid").delRowData(data.data);
+				},
+				error : function(jqXHR, textStatus, errorThrown) {
+					alert("删除失败,请稍后再试！");
+				}
+			});
+		};
+		
+	}
+	function operFormat( cellvalue, options, rowObject ){
+		var currentContentHotPage = $(this).jqGrid('getGridParam','page');
+		sessionStorage.setItem("currentContentHotPage", currentContentHotPage); 
+		return "<div><a class='btn btn-primary edit'  href='<c:url value='/content/hot/edit/'/>"+rowObject.id+"'>修改</a>&nbsp;&nbsp;<a class='btn btn-primary del' href='<c:url value='/content/del/'/>"+rowObject.id+"'>删除</a></div>";
+		
+	}
+	
+	function operUnFormat( cellvalue, options, cell){
+		return "";
+	}
+	
+	var f = { groupOp: "AND", rules: [] };
+	
+	var timer;
+    $('#query_title').keyup(function(){
+		var self = this;
+		var value = self.value;
+		var grid = $('#jqGrid');
+     	var field = "title";
+     	var op = "cn";
+     	
+		if(timer) { clearTimeout(timer); }
+		timer = setTimeout(function(){
+			//timer = null;
+			filter(f,grid,field,op,value);
+		},0);
+     	
+     }); 
+	
+	
+});
+</script>
+<!-- END BODY -->
+
+</html>

@@ -1,0 +1,349 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+   	<title>自助登记</title>
+   	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">  
+   	<%@ include file="../../base/taglib.jsp"%>
+   	<%@ include file="../../base/importCss.jsp"%>
+   	
+   	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+   	<%@ include file="../../base/importJs.jsp"%>
+   	<!-- END PAGE LEVEL SCRIPTS -->
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+<ul class="page-breadcrumb breadcrumb">
+                  <li>
+                     <i class="icon-cog"></i>业务管理
+                  </li>
+                  <li>实名认证</li>
+               </ul>
+<div class="panel panel-info col-sm-8">
+		
+		   	<div class="panel-heading">
+		   					<form class='form-inline' action="">
+		   					
+		   						<div class='form-group'>
+		   							<label>审核状态：</label>
+								    <select class='form-control' id="query_status" >
+			   							 <option value="*" selected="selected">全部</option>
+										<option value="1" >未认证</option>
+								    	<option value="2" >资料审核中</option>
+								    	<option value="3" >已认证</option>
+								    	<option value="4" >认证失败</option>
+								    </select>
+		   						</div> 
+		   						 <div class='form-group'>
+		   							<label>用户类型：</label>
+								    <select class='form-control' id="query_type" >
+			   							 <option value="*" selected="selected">全部</option>
+								    	<option value="1" >居民</option>
+								    	<option value="2" >民警</option>
+								    	<option value="3" >群干</option>
+								    	<option value="4" >网格员</option>
+								    	<option value="5" >医院医生</option>
+								    	<option value="6" >社区医生</option>
+								    	<option value="10" >物业</option>
+								    </select>
+		   						</div> 
+		   						
+		   						<!-- <div class='form-group'>
+		   							<label>用户身份：</label>
+								    <select class='form-control' id="query_identity" >
+			   							 <option value="" selected="selected">全部</option>
+								    	<option value="1" >业主</option>
+								    	<option value="2" >租客</option>
+								    	<option value="3" >游客</option>
+								    	<option value="3" >访客</option>
+								    </select>
+		   						</div>  -->
+		   						<div class='form-group'>
+									    <label>姓名：</label>
+									    <input class='form-control' type='text' id='query_name'>
+		   						</div>
+		   						
+		   						<div class='form-group'>
+									    <label>手机号：</label>
+									    <input class='form-control' type='text' id='query_cellphone'>
+		   						</div>
+					   
+		   					</form>
+		   			
+		   			
+		   		
+		   	
+			</div>
+			   	<div class="panel-body">
+				   	<div >
+					    <table id="jqGrid"></table>
+					    <div id="jqGridPager"></div>
+					</div>
+			   	</div>
+
+</div>
+<div class="col-sm-4 right-form">
+</div>
+</body>
+<script type="text/javascript">
+$(function() {
+	
+	$(window).resize(function(){
+		$("#jqGrid").setGridHeight($(window).height()-$('.panel-body').offset().top-80);
+	});
+	
+	
+	
+	$("#jqGrid").jqGrid({
+        url:"<c:url value='/authentication/list'/>",
+		// we set the changes to be made at client side using predefined word clientArray
+        editurl: 'clientArray',
+        datatype: "json",
+        mtype: "post",
+        jsonReader:{
+        	root:'data.rows',
+        	records: 'data.records',
+        	total: 'data.pages',
+        	repeatitems: true,
+        },
+        cmTemplate:{
+        	align:'center',
+        	sortable:false
+        },
+        colModel: [
+            {
+				label: 'ID',
+                name: 'id',
+				key: true,
+				hidden:true,
+				search:false,
+            },
+            {
+                name: 'type',
+                hidden:true,
+            
+            }, 
+            {
+				label : '姓名',
+                name: 'name',
+                width:70,
+                search:false,
+            },
+            {
+				label: '手机号',
+                name: 'cellphone',
+                width:60,
+                search:false,
+                
+            },
+            {
+				label: '身份证号',
+                name: 'idcard',
+                width:80,
+                search:false,
+                
+            },
+            /*  {
+				label : '所属地区',
+                name: 'address',
+                width:100,
+                formatter:function(cellvalue){
+                	if(cellvalue&&cellvalue.trim().length>0){
+                		return cellvalue.split(";")[0];
+                	}else{
+                		return "";
+                	}
+                }
+            },
+           {
+				label : '住址',
+                name: 'address',
+                formatter:function(cellvalue){
+                	if(cellvalue&&cellvalue.trim().length>0){
+                		if(cellvalue.split(";").length<3){
+                			return "";
+                		}else{
+                			return cellvalue.split(";")[2];	
+                		}
+                	}else{
+                		return "";
+                	}
+                }
+            }, */
+            {
+				label : '状态',
+                name: 'status',
+                formatter:'select', 
+                width:60,
+                editoptions:{value:"1:未认证;2:资料审核中;3:已认证;4:认证失败"},
+            },
+            {
+				label: '申请时间',
+				 width:60,
+                name: 'apply_time',
+                formatter:function(cellvalue, options, rowObject){
+                	if(!cellvalue)return "";
+               	 var cell=0;
+	                	if((cellvalue+"").length>10){
+	                		cell=cellvalue/1000;
+	                	}else{
+	                		cell=cellvalue;
+	                	}
+            	return ToDate("Y/m/d",cell);
+               }
+            }
+            ,
+            {
+				label: '审核时间',
+				 width:60,
+                name: 'audit_time',
+                formatter:function(cellvalue, options, rowObject){
+                	if(!cellvalue)return "";
+                	if(rowObject.status==3||rowObject.status==4){
+                		var cell=0;
+	                	if((cellvalue+"").length>10){
+	                		cell=cellvalue/1000;
+	                	}else{
+	                		cell=cellvalue;
+	                	}
+            			return ToDate("Y/m/d",cell);
+                	}else{
+                		return "";
+                	}
+               	 
+               }
+            },
+            {
+				label: '操作',
+                name: 'operation',
+                editable: false,
+                search:false,
+                formatter:operFormat,
+                unformat:operUnFormat,
+                width:60,
+            
+            }
+        ],
+        onSelectRow:function(rowid, status, e){
+      	  
+	      	  if(rowid != null) {
+	      		var row = $("#jqGrid").getRowData(rowid);
+	      		  if(row.status!=1){
+	      			$(".right-form").load("<c:url value='/authentication/view/?'/>"+"oper=show&type="+row.type+"&id="+rowid);
+	      		  }else{
+	      			  $(".right-form").html("");
+	      			  alert("未提交认证资料");
+	      		  }
+	      		  
+	      		
+				}	
+        },
+        onPaging:function(){
+        	$(".right-form").html("");
+        },
+		loadonce: false,
+		viewrecords: true,
+        shrinkToFit :true,
+        height:$(window).height()-$('.panel-body').offset().top-80,
+        autowidth:true,
+        rownumbers:true,
+        rownumWidth:50,
+        rowNum: 10,
+        pager: "#jqGridPager"
+    });
+		        
+	function operFormat( cellvalue, options, rowObject ){
+			/* if(rowObject.status==2){
+				return "<div><a class='btn btn-primary edit'  href='#' onclick='showAuth("+rowObject.type+","+rowObject.id+");return false;'>查看</a><a class='btn btn-primary edit'   href='#' onclick='handleAuth("+rowObject.type+","+rowObject.id+");return false;'>审核</a></div>";
+			}else if(rowObject.status==1){
+				return "";
+			} else {
+				return "<div><a class='btn btn-primary edit'   href='#' onclick='showAuth("+rowObject.type+","+rowObject.id+");return false;'>查看</a></div>";
+			} */
+			
+			
+		if(rowObject.status==2){
+			return "<a class='btn btn-primary edit'   href='#' onclick='handleAuth("+rowObject.type+","+rowObject.id+");return false;'>审核</a></div>";
+		}else{
+			return "";
+		}
+       		
+	}
+	
+	function operUnFormat( cellvalue, options, cell){
+		return "";
+	}
+	 window.showAuth=function(type,id){
+	$(".right-form").load("<c:url value='/authentication/view/?'/>"+"oper=show&type="+type+"&id="+id);
+} 
+
+window.handleAuth=function(type,id){
+	$(".right-form").load("<c:url value='/authentication/view/?'/>"+"oper=edit&type="+type+"&id="+id);
+}
+	
+	var f = { groupOp: "AND", rules: [] };
+	 $('#query_status').change(function(){
+		   	var self = this;
+				var value = self.value;
+		    	var grid = $('#jqGrid');
+		    	var field = "status";
+		    	var op = "eq";
+
+		    	filter(f,grid,field,op,value);
+		    	
+		    }); 
+     $('#query_type').change(function(){
+   	var self = this;
+		var value = self.value;
+    	var grid = $('#jqGrid');
+    	var field = "type";
+    	var op = "eq";
+
+    	filter(f,grid,field,op,value);
+    	
+    }); 
+    
+    var timer;
+    $('#query_name').keyup(function(){
+		var self = this;
+		var value = self.value;
+		var grid = $('#jqGrid');
+     	var field = "name";
+     	var op = "cn";
+     	
+		if(timer) { clearTimeout(timer); }
+		timer = setTimeout(function(){
+			//timer = null;
+			filter(f,grid,field,op,value);
+		},0);
+     	
+     }); 
+    
+    var timer1;
+    $('#query_cellphone').keyup(function(){
+		var self = this;
+		var value = self.value;
+		var grid = $('#jqGrid');
+     	var field = "cellphone";
+     	var op = "cn";
+     	
+		if(timer1) { clearTimeout(timer1); }
+		timer1 = setTimeout(function(){
+			//timer = null;
+			filter(f,grid,field,op,value);
+		},0);
+     	
+     }); 
+	
+    
+    
+    
+});
+</script>
+<!-- END BODY -->
+
+</html>

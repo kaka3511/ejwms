@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 系统参数配置 -->
+<application>
+ 
+<!--   <parameter>
+    <description>上传文件目录</description>
+    <key>uploadPic</key>
+    <value>../ejwms/WebContent/WEB-INF/uploadFile/photo</value>
+ </parameter>
+ -->
+ 
+ </application>

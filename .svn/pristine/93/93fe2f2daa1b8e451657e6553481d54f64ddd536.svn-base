@@ -1,0 +1,499 @@
+/**
+ * 
+ */
+package com.huaao.web.content;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.http.entity.ContentType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+
+import com.huaao.common.extension.DateTimeUtil;
+import com.huaao.common.extension.LogUtils;
+import com.huaao.common.extension.OSSUtil;
+import com.huaao.common.extension.RespCode;
+import com.huaao.common.extension.RespInfo;
+import com.huaao.common.utilities.Page;
+import com.huaao.common.utilities.PramaStrHelper;
+import com.huaao.common.utilities.TwoDimensionCode;
+import com.huaao.model.content.Content;
+import com.huaao.model.home.AuthPassport;
+import com.huaao.model.home.SystemVariable;
+import com.huaao.model.home.UserInfo;
+import com.huaao.service.content.ContentService;
+import com.huaao.service.system.DictionaryManageService;
+import com.huaao.web.home.AuthHelper;
+
+import net.sf.json.JSONObject;
+
+/** 
+* @ClassName: ContentController 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月8日 下午3:43:41 
+* 
+* 
+*/
+@Controller@RequestMapping("/content")
+public class ContentController {
+
+	
+	@Autowired
+	private ContentService contentService;
+	@Autowired
+	private DictionaryManageService dictionaryManageService;
+	
+	@AuthPassport@RequestMapping("/{path}/index")
+	public String index(@PathVariable String path,HttpServletRequest request){
+		HttpSession session = request.getSession(true);
+		session.setAttribute("menuSession","YES");
+		return "content/"+path+"/index";
+	}
+	@AuthPassport@RequestMapping("/{path}/add")
+	public String add(@PathVariable String path){
+		return "content/"+path+"/add";
+	}
+	@AuthPassport@RequestMapping("/{path}/edit/{id}")
+	public String edit(@PathVariable String path,@PathVariable Integer id,HttpServletRequest request){
+		
+		SqlRowSet content = contentService.queryContentWith(id);
+		request.setAttribute("id", id);
+		request.setAttribute("content", content);
+		return "content/"+path+"/edit";
+	}
+	@AuthPassport@RequestMapping("/list")
+	@ResponseBody
+	public RespInfo  list(HttpServletRequest request){
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		List  list = contentService.queryOtherForList(cuser.getCommunityId());
+		resp.setData(list);
+		return resp;
+	}
+	
+	//健康
+	@AuthPassport@RequestMapping("/health")
+	@ResponseBody
+	public RespInfo  health(HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HttpSession session = request.getSession(true);
+		String o= (String) session.getAttribute("menuSession");
+		if(o.equals("YES")){
+			PramaStrHelper.removeAllPramaStrMap();
+			session.setAttribute("menuSession","NO");
+		}
+		else{
+			session.setAttribute("menuSession","NO");
+			if(pager.getPramaStr() != null){
+				PramaStrHelper.pramaStrMap.put("healthPramaStrMap", pager.getPramaStr());
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("healthPramaStrMap"));
+			}
+			else
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("healthPramaStrMap"));
+		}
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		contentService.queryForHealthPage(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	
+	//社区动态
+	@AuthPassport@RequestMapping("/hot")
+	@ResponseBody
+	public RespInfo  hot(HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HttpSession session = request.getSession(true);
+		String o= (String) session.getAttribute("menuSession");
+		if(o.equals("YES")){
+			PramaStrHelper.removeAllPramaStrMap();
+			session.setAttribute("menuSession","NO");
+		}
+		else{
+			session.setAttribute("menuSession","NO");
+			if(pager.getPramaStr() != null){
+				PramaStrHelper.pramaStrMap.put("hotPramaStrMap", pager.getPramaStr());
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("hotPramaStrMap"));
+			}
+			else
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("hotPramaStrMap"));
+		}
+		List<String> pramaStr = PramaStrHelper.getSpecificPrama("hotPramaStrMap");
+		if(pramaStr != null){
+			request.setAttribute("query_title", pramaStr.get(0));
+		}
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		contentService.queryForHotPage(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	
+	//办事指南
+	@AuthPassport@RequestMapping("/guide")
+	@ResponseBody
+	public RespInfo  guide(HttpServletRequest request){
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		List  list = contentService.queryGuideForList(cuser.getCommunityId());
+		resp.setData(list);
+		return resp;
+	}
+	
+	@AuthPassport@RequestMapping("/listRecovery")
+	@ResponseBody
+	public RespInfo  listRecovery(HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HttpSession session = request.getSession(true);
+		String o= (String) session.getAttribute("menuSession");
+		if(o.equals("YES")){
+			PramaStrHelper.removeAllPramaStrMap();
+			session.setAttribute("menuSession","NO");
+		}
+		else{
+			session.setAttribute("menuSession","NO");
+			if(pager.getPramaStr() != null){
+				PramaStrHelper.pramaStrMap.put("recoveryPramaStrMap", pager.getPramaStr());
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("recoveryPramaStrMap"));
+			}
+			else
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("recoveryPramaStrMap"));
+		}
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		contentService.queryForListRecoveryPage(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	
+	@AuthPassport@RequestMapping("/listCharity")
+	@ResponseBody
+	public RespInfo  listCharity(HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HttpSession session = request.getSession(true);
+		String o= (String) session.getAttribute("menuSession");
+		if(o.equals("YES")){
+			PramaStrHelper.removeAllPramaStrMap();
+			session.setAttribute("menuSession","NO");
+		}
+		else{
+			session.setAttribute("menuSession","NO");
+			if(pager.getPramaStr() != null){
+				PramaStrHelper.pramaStrMap.put("charityPramaStrMap", pager.getPramaStr());
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("charityPramaStrMap"));
+			}
+			else
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("charityPramaStrMap"));
+		}
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		contentService.queryForListCharityPage(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	
+	@AuthPassport@RequestMapping("/publish")
+	@ResponseBody
+	public RespInfo  publish(Content ctt, HttpServletRequest request) throws ParseException{
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		
+		Integer type = ctt.getType();
+		
+		Integer status=1;
+		if(type==6){
+			status=4;
+		}
+
+		Integer subType = ctt.getSubtype();
+		String title= ctt.getTitle();
+		String summary= ctt.getSummary();
+		String content= ctt.getContent();
+		
+		String starttime= ctt.getStarttime();
+		String endtime= ctt.getEndtime();
+		
+		Long lStart = new Long(0);
+		Long lEnd = new Long(0);
+		
+		if(!StringUtils.isEmpty(starttime)&&!StringUtils.isEmpty(endtime)){
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date start = format.parse(starttime);
+			Date end = format.parse(endtime);
+			
+			lStart = start.getTime()/1000;
+			lEnd = end.getTime()/1000;
+		}
+		
+		String address = ctt.getStartaddr();
+		String location = ctt.getLocation();
+		
+		Integer pupilId = ctt.getPupilId()==null?0:ctt.getPupilId();
+		Integer keeperId = ctt.getKeeperId()==null?0:ctt.getKeeperId();
+		
+		String pupil = ctt.getPupil();
+		String keeper = ctt.getKeeper();
+		
+		String summaryImg = ctt.getSummary_img();
+		
+		long createtime= new Date().getTime()/1000;
+		long updatetime= new Date().getTime()/1000;
+		contentService.insert(new Object[]{cuser.getId(),cuser.getCommunityId(),type,status,subType,title,summary,summaryImg,content,lStart,lEnd,address,location,pupil,keeperId,updatetime,createtime});
+//		0社区热点(获取所有)1办事指南2康复活动3慈善活动4健康计划5健康生活6健康贴士
+		String action="";
+		switch (type) {
+		case 0:
+			action = "社区热点-添加";
+			break;
+		case 1:
+			action = "办事指南-添加";	
+					break;
+		case 2:
+			action = "康复活动-添加";
+			break;
+		case 3:
+			action = "慈善活动-添加";
+			break;
+		case 4:
+			action = "健康计划-添加";
+			break;
+		case 5:
+			action = "健康生活-添加";
+			break;
+		case 6:
+			action = "健康贴士-添加";
+			break;
+		case 8:
+			action = "社区动态-添加";
+			break;
+		}
+		LogUtils.saveLog(request,action);
+		return resp;
+	}
+	@AuthPassport@RequestMapping("/update")
+	@ResponseBody
+	public RespInfo  update(Content ctt,HttpServletRequest request) throws ParseException{
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		
+		Integer id = ctt.getId();
+		String title= ctt.getTitle();
+		String summary= ctt.getSummary();
+		String content= ctt.getContent();
+		
+		Integer subtype= ctt.getSubtype();
+		
+		String starttime= ctt.getStarttime();
+		String endtime= ctt.getEndtime();
+		
+		Long lStart = new Long(0);
+		Long lEnd = new Long(0);
+		
+		if(!StringUtils.isEmpty(starttime)&&!StringUtils.isEmpty(endtime)){
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date start = format.parse(starttime);
+			Date end = format.parse(endtime);
+			
+			lStart = start.getTime()/1000;
+			lEnd = end.getTime()/1000;
+		}
+		
+		String address = ctt.getStartaddr();
+		String location = ctt.getLocation();
+		
+		Integer pupilId = ctt.getPupilId()==null?0:ctt.getPupilId();
+		Integer keeperId = ctt.getKeeperId()==null?0:ctt.getKeeperId();
+		
+		String pupil = ctt.getPupil();
+		String keeper = ctt.getKeeper();
+		
+		String summaryImg = ctt.getSummary_img();
+		
+		long updatetime= new Date().getTime()/1000;
+		contentService.update(new Object[]{title,summary,summaryImg,content,lStart,lEnd,address,location,pupil,keeperId,updatetime,subtype,id});
+		SqlRowSet record = contentService.queryContentWith(id);
+		record.next();
+		int type = record.getInt("type");
+		String action="";
+		switch (type) {
+		case 0:
+			action = "社区热点-修改";
+			break;
+		case 1:
+			action = "办事指南-修改";	
+					break;
+		case 2:
+			action = "康复活动-修改";
+			break;
+		case 3:
+			action = "慈善活动-修改";
+			break;
+		case 4:
+			action = "健康计划-修改";
+			break;
+		case 5:
+			action = "健康生活-修改";
+			break;
+		case 6:
+			action = "健康贴士-修改";
+			break;
+		case 8:
+			action = "社区动态-修改";
+			break;
+		}
+		LogUtils.saveLog(request,action);
+		return resp;
+	}
+	
+	@AuthPassport@RequestMapping("/del/{id}")
+	@ResponseBody
+	public RespInfo  del(@PathVariable Integer id,HttpServletRequest request){
+		
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		SqlRowSet record = contentService.queryContentWith(id);
+		record.next();
+		int type = record.getInt("type");
+		String action="";
+		switch (type) {
+		case 0:
+			action = "社区热点-删除";
+			break;
+		case 1:
+			action = "办事指南-删除";	
+					break;
+		case 2:
+			action = "康复活动-删除";
+			break;
+		case 3:
+			action = "慈善活动-删除";
+			break;
+		case 4:
+			action = "健康计划-删除";
+			break;
+		case 5:
+			action = "健康生活-删除";
+			break;
+		case 6:
+			action = "健康贴士-删除";
+			break;
+		case 8:
+			action = "社区动态-删除";
+			break;
+		}
+		LogUtils.saveLog(request,action);
+		resp.setData(id);
+		
+		contentService.del(new Object[]{id});
+		return resp;
+	}
+	
+	/**
+	 * 图片上传
+	 * @throws IOException 
+	 */
+    @AuthPassport@RequestMapping(value = "/uploadImg", method = {RequestMethod.POST})
+	public void uploadImg(@RequestParam(value = "file") CommonsMultipartFile file,HttpServletRequest request,HttpServletResponse response) throws IOException{
+		UserInfo user =AuthHelper.getSessionUserAuth(request);
+		String img ="";
+		String flag = "";
+		JSONObject jo = new JSONObject();
+    	if (!file.isEmpty()) {
+    		String pathName=file.getFileItem().getName();
+            String prefix=pathName.substring(pathName.lastIndexOf(".")+1);
+            String fileName = "C_"+DateTimeUtil.getCurrentDate("yyyyMMddHHmmssSSS")+"."+prefix;
+    		flag = OSSUtil.uploadFile(file, fileName);
+    	    img = "http://"+SystemVariable.DomainName_OSS+"/"+fileName;
+    		
+		}
+    	jo.element("flag", flag);
+    	jo.element("img", img);
+    	response.setContentType("text/html;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter pw = response.getWriter();
+		pw.print(jo);
+		pw.flush();
+    }
+	//下载慈善活动的二维码
+	/*@AuthPassport@RequestMapping("/downloadQRCode/{id}")
+	public void downloadQRCode(@PathVariable int id,HttpServletResponse resp) throws IOException{
+		
+		TwoDimensionCode qrCode = new TwoDimensionCode();
+		resp.setContentType(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+		resp.setHeader("Content-disposition", "attachment; filename=qrCode.png");
+		qrCode.encoderQRCode(id+"", resp.getOutputStream(),"png",1);
+		
+		
+	}*/
+    
+    @AuthPassport
+	@RequestMapping("/downloadQRCode/{id}/{name}.png")
+	public void downloadQRCode(@PathVariable int id, @PathVariable String name, HttpServletResponse resp) throws IOException {
+		String pName = name.substring(0,name.lastIndexOf("-"));
+
+		TwoDimensionCode qrCode = new TwoDimensionCode();
+		ByteArrayOutputStream outByteArr = new ByteArrayOutputStream();
+		qrCode.encoderQRCode(id + "", pName, outByteArr, "png", 1);
+		resp.setHeader("Content-Disposition","form-data; name=\"attachment\"; filename=\""+URLEncoder.encode(name,"utf-8")+".png\"");
+//		resp.setHeader("Content-Disposition","form-data; name=\"attachment\"; filename=\"bbb.png\"");
+		resp.setHeader("Content-Type",MediaType.APPLICATION_OCTET_STREAM_VALUE);
+//		resp.setHeader("Content-Length",outByteArr.toByteArray().length+"");
+		ServletOutputStream outputStream = resp.getOutputStream();
+		outputStream.write(outByteArr.toByteArray());
+//		outputStream.flush();
+
+
+	}
+	
+	@SuppressWarnings("unchecked")
+	@AuthPassport
+    @RequestMapping(value = "/getGuideSubtypeByDictionary.do")
+    public @ResponseBody Map getCommunityList(HttpServletRequest request) throws Exception {
+		UserInfo user=AuthHelper.getSessionUserAuth(request);
+		Map result = new HashMap<String, List>();
+    	List<Dictionary> list = dictionaryManageService.listChildrenByCode(user.getCommunityId(),"service_guide_type");
+    	result.put("data",list);
+    	return result;
+    }
+}

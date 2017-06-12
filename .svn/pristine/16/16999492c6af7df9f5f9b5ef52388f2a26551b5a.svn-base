@@ -1,0 +1,181 @@
+package com.huaao.dao.base;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.lob.LobHandler;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
+
+import com.huaao.common.utilities.Page;
+
+@Repository
+public class BaseDao {
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	@Autowired
+	private LobHandler lobHandler;
+
+	/**
+	 * 带参数的数据库操作
+	 * @param sql
+	 * @param params
+	 * @return 执行操作数量
+	 */
+	public int update(String sql,Object[] params) {
+		return this.jdbcTemplate.update(sql,params);
+	}
+	
+	/**
+	 * 不带参数的数据库操作
+	 * @param sql
+	 * @param params
+	 * @return 执行操作数量
+	 */
+	public int updateNM(String sql) {
+		return this.jdbcTemplate.update(sql);
+	}
+	
+	/**
+	 * 不带参数的数据库操作
+	 * @param sql
+	 * @param params
+	 * @return 执行操作数量
+	 */
+	public void update(String sql) {
+		this.jdbcTemplate.execute(sql);
+	}
+	
+	/**
+	 * 带参数的数据库操作
+	 * @param sql
+	 * @param params
+	 */
+	public int saveOrUpdate(String sql,Object[] params) {
+		return this.jdbcTemplate.update(sql,params);
+	}
+	
+	/**
+	 * 通过sql语句返回list列表
+	 * @param sql
+	 * @return
+	 */
+	public List<Map<String, Object>> queryForList(String sql) {
+		return this.jdbcTemplate.queryForList(sql);
+	}
+	
+	/**
+	 * 通过sql语句返回分页list列表
+	 * @param sql, 开始页码， 单页记录数（建议一页显示10条）
+	 * @Description 若startPage<0，则不予分页。startPage从0开始
+	 * @return
+	 */
+	public List<Map<String, Object>> queryForList(String sql, int startPage, int len) {
+		if(startPage > -1){
+			if(!sql.contains("where")) sql += " where " ; 
+			sql += " limit " + startPage*len + " , " + len;
+		}
+		return this.jdbcTemplate.queryForList(sql);
+	}
+	
+	/**
+	 * 带参数返回list列表
+	 * @param sql
+	 * @return
+	 */
+	public List<Map<String, Object>> queryForList(String sql,Object[] args) {
+		return this.jdbcTemplate.queryForList(sql, args);
+	}
+	
+	/**
+	 * 带参数返回list列表
+	 * @param sql
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Map<String, Object>> queryForList(String sql,Class elementType) {
+		return this.jdbcTemplate.queryForList(sql, elementType);
+	}
+	
+	/**
+	 * 通过sql语句返回list列表
+	 * @param sql
+	 * @return
+	 */
+	public int queryForInt(String sql) {
+		//@SuppressWarnings("deprecation")
+		int count = this.jdbcTemplate.queryForInt(sql);
+		return count;
+	}
+	
+	/**
+	 * 通过sql语句返回整型
+	 * @param sql
+	 * @return
+	 */
+	public int queryForInt(String sql,Object[] args) {
+		@SuppressWarnings("deprecation")
+		int count = this.jdbcTemplate.queryForInt(sql, args);
+		return count;
+	}
+	
+	/**
+	 * 通过sql语句返回list列表
+	 * @param sql
+	 * @return SqlRowSet
+	 */
+	public SqlRowSet queryForRowSet(String sql,Object[] args) {
+		//@SuppressWarnings("deprecation")
+		SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, args);
+		return rowSet;
+	}
+	
+	public SqlRowSet queryForRowSet(String sql) {
+		//@SuppressWarnings("deprecation")
+		SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql);
+		return rowSet;
+	}
+	/*
+	 * return 插入记录的自增长key
+	 */
+	public int update(PreparedStatementCreator creator){
+		
+		GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+		this.jdbcTemplate.update(creator , keyHolder);
+		return keyHolder.getKey().intValue();
+	}
+	
+public int save(final String sql,final Object[] params){
+		
+		GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+		this.jdbcTemplate.update(new PreparedStatementCreator() {
+
+			@Override
+			public java.sql.PreparedStatement createPreparedStatement(java.sql.Connection con) throws SQLException {
+				PreparedStatement stm = con.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+				for (int i = 0; i < params.length; i++) {
+					Object param = params[i];
+					stm.setObject(i+1, param);
+					
+				}
+				return stm;
+			}
+			
+		} , keyHolder);
+		return keyHolder.getKey().intValue();
+	}
+	
+	public void queryPage(String sql, Page pager) {
+		pager.getPageData(sql, this.jdbcTemplate);
+	}
+}

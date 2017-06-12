@@ -1,0 +1,162 @@
+/**
+ * 
+ */
+package com.huaao.service.content;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+
+import com.huaao.common.utilities.Page;
+import com.huaao.dao.base.BaseDao;
+
+/** 
+* @ClassName: ContentService 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月8日 下午3:46:52 
+* 
+* 
+*/
+@Service
+public class ContentService {
+
+	@Autowired
+	private BaseDao dao;
+	/** 
+	* @Title: queryList 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @return  参数说明 
+	* @return List    返回类型 
+	* @throws 
+	*/
+	public List queryOtherForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type <> 2 and type <> 3 and status<>0  and communityid = ? order by updatetime desc";
+		return dao.queryForList(sql, new Object[]{communityid});
+	}
+	
+	public List queryRecoeryForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type = 2 and status<>0 and communityid = ? order by updatetime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	public List queryGuideForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type = 1 and status<>0 and communityid=? order by updatetime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	
+	public List queryHealthForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type in (4,5,6)  and status<>0  and communityid=? order by updatetime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	
+	public List queryHotForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type =8 and status=1  and communityid=? order by updatetime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	
+	public List queryCharityForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from sps_d_content where type = 3   and status<>0  and communityid=? order by updatetime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	/** 
+	* @Title: insert 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void insert(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql ="insert into sps_d_content (cuser,communityid,type,status,subtype,title,summary,summary_img,content,starttime,endtime,startaddr,location,charity,agentid,updatetime,createtime) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		dao.saveOrUpdate(sql, objects);
+		
+	}
+	/** 
+	* @Title: update 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void update(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql = "update  sps_d_content set title=?,summary=?,summary_img=?,content=?,starttime=?,endtime=?,startaddr=?,location=?,charity=?,agentid=?,updatetime=?,subtype=? where id=?";
+		dao.update(sql, objects);
+		
+	}
+	/** 
+	* @Title: del 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void del(Object[] objects) {
+		// TODO Auto-generated method stub
+		//String sql = "delete from sps_d_content where id=?";
+		String sql = "update  sps_d_content set status=0 where id=?";
+		dao.update(sql, objects);
+		
+	}
+	/** 
+	* @Title: queryContentWith 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param id
+	* @param @return  参数说明 
+	* @return SqlRowSet    返回类型 
+	* @throws 
+	*/
+	public SqlRowSet queryContentWith(Integer id) {
+		// TODO Auto-generated method stub
+		String sql = "select a.*,b.name agent from sps_d_content a left join jw_user b on a.agentid = b.id where a.id=?";
+		//String sql = "select a.* from sps_d_content a where a.id=?";
+		return dao.queryForRowSet(sql,new Object[]{id});
+	}
+	
+	
+	public void queryForHotPage(Integer communityid, Page pager) {
+		StringBuffer sbf = new StringBuffer("select * from sps_d_content where type =8 and status=1  and communityid = " + communityid);
+		String additions = " order by updatetime desc  ";
+		pager.setCountSql(sbf.toString());
+		pager.setCountSqlConditions(additions);
+		dao.queryPageWithConditions(sbf.toString(), pager, additions);
+		
+	}
+	
+	
+	public void queryForHealthPage(Integer communityid, Page pager) {
+		StringBuffer sbf = new StringBuffer("select * from sps_d_content where type in (4,5,6)  and status<>0  and communityid=" + communityid);
+		String additions = " order by updatetime desc  ";
+		pager.setCountSql(sbf.toString());
+		pager.setCountSqlConditions(additions);
+		dao.queryPageWithConditions(sbf.toString(), pager, additions);
+		
+	}
+	
+	public void queryForListRecoveryPage(Integer communityid, Page pager) {
+		StringBuffer sbf = new StringBuffer("select * from sps_d_content where type = 2 and status<>0 and communityid =" + communityid);
+		String additions = " order by updatetime desc  ";
+		pager.setCountSql(sbf.toString());
+		pager.setCountSqlConditions(additions);
+		dao.queryPageWithConditions(sbf.toString(), pager, additions);
+		
+	}
+	
+	public void queryForListCharityPage(Integer communityid, Page pager) {
+		StringBuffer sbf = new StringBuffer("select * from sps_d_content where type = 3   and status<>0  and communityid=" + communityid);
+		String additions = " order by updatetime desc  ";
+		pager.setCountSql(sbf.toString());
+		pager.setCountSqlConditions(additions);
+		dao.queryPageWithConditions(sbf.toString(), pager, additions);
+		
+	}
+	
+}

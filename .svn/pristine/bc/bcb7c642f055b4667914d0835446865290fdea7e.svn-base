@@ -1,0 +1,98 @@
+/**
+ * 
+ */
+package com.huaao.service.goods;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+
+import com.huaao.dao.base.BaseDao;
+
+/** 
+* @ClassName: ContentService 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月8日 下午3:46:52 
+* 
+* 
+*/
+@Service
+public class MallService {
+
+	@Autowired
+	private BaseDao dao;
+	/** 
+	* @Title: queryList 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @return  参数说明 
+	* @return List    返回类型 
+	* @throws 
+	*/
+	public List queryForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select * from jw_gift where communityid = ? order by id desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	/** 
+	* @Title: insert 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void insert(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql ="insert into jw_gift (communityid,points,name,description,image,creator,inform,createtime,stocks) values(?,?,?,?,?,?,?,unix_timestamp(),?)";
+		dao.saveOrUpdate(sql, objects);
+		
+	}
+	/** 
+	* @Title: update 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void update(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql = "update  jw_gift set points=?,name=?,description=?,image=?,inform=?,stocks=? where id=?";
+		dao.update(sql, objects);
+		
+	}
+	public void updateNew(int points,String name,String description,String image,String inform,int id,int stocks) {
+		// TODO Auto-generated method stub
+		String sql = "update  jw_gift set points="+points+",name='"+name+"',description='"+description+"',image='"+image+"',inform='"+inform+"',stocks="+stocks+" where id="+id;
+		dao.update(sql);
+		
+	}
+	/** 
+	* @Title: del 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void del(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql = "delete from jw_gift where id=?";
+		dao.update(sql, objects);
+		
+	}
+	/** 
+	* @Title: queryContentWith 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param id
+	* @param @return  参数说明 
+	* @return SqlRowSet    返回类型 
+	* @throws 
+	*/
+	public SqlRowSet queryWith(Integer id) {
+		// TODO Auto-generated method stub
+		String sql = "select * from jw_gift where id=?";
+		return dao.queryForRowSet(sql,new Object[]{id});
+	}
+
+}

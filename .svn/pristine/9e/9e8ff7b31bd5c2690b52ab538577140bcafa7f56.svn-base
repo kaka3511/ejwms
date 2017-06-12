@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:cache="http://www.springframework.org/schema/cache"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xsi:schemaLocation="
+  http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/tx
+  http://www.springframework.org/schema/tx/spring-tx.xsd
+  http://www.springframework.org/schema/aop
+  http://www.springframework.org/schema/aop/spring-aop.xsd
+  http://www.springframework.org/schema/cache
+  http://www.springframework.org/schema/cache/spring-cache.xsd
+  http://www.springframework.org/schema/context 
+  http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 扫描注解Repository -->
+  	<!-- use-default-filters="false" 只扫描指定的注解 -->
+    <context:component-scan base-package="com.huaao.dao" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan>
+
+  	<!-- 扫描注解Service -->
+    <context:component-scan base-package="com.huaao.service"/>
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:database.properties</value>
+            </list>
+        </property>
+    </bean>
+   <!--  <context:property-placeholder location="database.properties"/> -->
+    
+    <!-- 写库配置 -->
+	<bean id="writeDataSource" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+		<property name="alias" value="proxoolDataSource"/>
+		<property name="driver" value="${connection.driver_class}" />
+		<property name="driverUrl" value="${connection.url}" />
+		<property name="user" value="${connection.username}" />
+		<property name="password" value="${connection.password}" />
+	    <property name="statistics" value="${proxool.statistics}" />
+		<property name="maximumConnectionCount" value="${proxool.maximum.connection.count}"/>
+		<property name="minimumConnectionCount" value="${proxool.minimum.connection.count}"/>		
+		<property name="simultaneousBuildThrottle" value="${proxool.simultaneous.build.throttle}"/>
+	</bean>
+	<!-- 读库配置 -->
+	<!-- <bean id="readDataSource1" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+		<property name="alias" value="proxoolDataSource"/>
+		<property name="driver" value="${connection.driver_class}" />
+		<property name="driverUrl" value="${connection.url}" />
+		<property name="user" value="${connection.username}" />
+		<property name="password" value="${connection.password}" />
+	    <property name="statistics" value="${proxool.statistics}" />
+		<property name="maximumConnectionCount" value="${proxool.maximum.connection.count}"/>
+		<property name="minimumConnectionCount" value="${proxool.minimum.connection.count}"/>		
+		<property name="simultaneousBuildThrottle" value="${proxool.simultaneous.build.throttle}"/>
+	</bean> -->
+	<!-- 读写动态库配置 -->
+	<!-- <bean id="readWriteDataSource" class="com.common.datasource.ReadWriteDataSource">  
+    	<property name="writeDataSource" ref="writeDataSource"/>  
+    	<property name="readDataSourceMap">  
+       		<map>  
+          		<entry key="readDataSource1" value-ref="readDataSource1"/>  
+          		<entry key="readDataSource2" value-ref="readDataSource1"/>  
+          		<entry key="readDataSource3" value-ref="readDataSource1"/>  
+          		<entry key="readDataSource4" value-ref="readDataSource1"/>  
+       		</map>  
+    	</property>  
+	</bean>   -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" scope="prototype" lazy-init="true"
+		p:dataSource-ref="writeDataSource" />
+		
+	<!-- 配置defaultLobHandler -->
+	<bean id="defaultLobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler"
+		lazy-init="true" />
+
+	<!-- 事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		p:dataSource-ref="writeDataSource" />
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />  
+        	<tx:method name="add*" propagation="REQUIRED" />  
+        	<tx:method name="create*" propagation="REQUIRED" />  
+        	<tx:method name="insert*" propagation="REQUIRED" />  
+        	<tx:method name="update*" propagation="REQUIRED" />  
+        	<tx:method name="merge*" propagation="REQUIRED" />  
+        	<tx:method name="del*" propagation="REQUIRED" />  
+        	<tx:method name="remove*" propagation="REQUIRED" />  
+          
+        	<tx:method name="put*" read-only="true"/>  
+        	<tx:method name="query*" read-only="true"/>  
+        	<tx:method name="use*" read-only="true"/>  
+        	<tx:method name="get*" read-only="true" />  
+        	<tx:method name="count*" read-only="true" />  
+        	<tx:method name="find*" read-only="true" />  
+        	<tx:method name="list*" read-only="true" />  
+          
+        	<tx:method name="*" propagation="REQUIRED"/> 
+			<tx:method name="*Transaction" propagation="REQUIRED" rollback-for="Exception" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 读/写动态数据库选择处理器(根据之前的txAdvice配置的事务属性决定是读/写) -->
+<!-- 	<bean id="readWriteDataSourceTransactionProcessor" class="com.common.datasource.ReadWriteDataSourceProcessor">  
+		forceChoiceReadWhenWrite：用于确定在如果目前是写（即开启了事务），下一步如果是读，是直接参与到写库进行读，还是强制从读库读
+   		<property name="forceChoiceReadWhenWrite" value="false"/>  
+	</bean>  -->
+	
+	<!-- 事务切面和读/写库选择切面 -->
+	<aop:config>
+		<!-- 对基类业务逻辑层实施事务 -->
+		<aop:pointcut id="serviceMethod" expression="execution(* com.huaao.service..*(..))" />
+		<aop:advisor pointcut-ref="serviceMethod" advice-ref="txAdvice" />
+		<!-- 通过AOP切面实现读/写库选择 -->  
+    	<!-- <aop:aspect order="-2147483648" ref="readWriteDataSourceTransactionProcessor">  
+       		<aop:around pointcut-ref="serviceMethod" method="determineReadOrWriteDB"/>  
+    	</aop:aspect>  -->
+	</aop:config>
+    <!-- 声明式事务配置结束 -->
+    
+<!--     <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+        <property name="cacheManager">
+            <bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+                <property name="configLocation" value="classpath:ehcache-config.xml"></property>
+            </bean>
+        </property>
+    </bean>
+    
+    <cache:annotation-driven /> -->
+    
+    <!-- 激活自动代理功能 -->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+	
+    <!-- <cache:advice id="cacheAdvice" cache-manager="cacheManager">
+        <cache:caching>
+            <cache:cacheable cache="accountCache" method="select"
+                key="#id" />
+            <cache:cache-evict cache="dao.select" method="save"
+                key="#obj" />
+        </cache:caching>
+    </cache:advice>
+
+    <aop:config>
+        <aop:advisor advice-ref="cacheAdvice" pointcut="execution(* com.dao.*(..))"/>
+    </aop:config> -->
+</beans>

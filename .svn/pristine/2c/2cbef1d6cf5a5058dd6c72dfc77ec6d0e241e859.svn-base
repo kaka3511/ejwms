@@ -1,0 +1,26 @@
+package com.huaao.common.utilities;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang.StringUtils;
+
+public class PramaStrHelper {
+	public static ConcurrentHashMap<String,String> pramaStrMap = new ConcurrentHashMap<String , String>();
+	
+	public static boolean existPramaStrMap(String currentPramaStrFlag){
+	 for (Map.Entry<String, String> entry : PramaStrHelper.pramaStrMap.entrySet()) {  
+		 if(StringUtils.equals(currentPramaStrFlag, entry.getKey()))
+		   return true; 
+	  } 	
+	  return false;
+	}
+	public static void removeAllPramaStrMap(){
+		for(String key : pramaStrMap.keySet()){  
+				 pramaStrMap.remove(key);
+		  } 	
+		 
+	}
+}

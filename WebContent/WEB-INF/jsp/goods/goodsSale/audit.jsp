@@ -1,0 +1,290 @@
+<%@page import="org.springframework.util.StringUtils"%>
+<%@page import="java.util.HashMap"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.List"%>
+<%@page import="org.apache.jasper.tagplugins.jstl.core.ForEach"%>
+<%@page import="org.springframework.jdbc.support.rowset.SqlRowSet"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>警情信息-警情信息</title>
+<%@ include file="../../base/taglib.jsp"%>
+<%@ include file="../../base/importCss.jsp"%>
+
+<style type="text/css">
+.help-block {
+	color: red;
+	float: left;
+	position: relative;
+}
+
+#audit_form button {
+	margin-left: 40px;
+}
+
+.imgs img {
+	width: 300px;
+	height: 300px;
+}
+</style>
+<!-- BEGIN PAGE LEVEL SCRIPTS -->
+<%@ include file="../../base/importJs.jsp"%>
+<!-- END PAGE LEVEL SCRIPTS -->
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+	<ul class="page-breadcrumb breadcrumb">
+		<li><i class="icon-cog"></i>商品管理</li>
+		<li>爱心义卖商品审核</li>
+	</ul>
+	<div class="panel panel-info">
+
+		<div class="panel-heading">义卖商品详情</div>
+		<div class="panel-body">
+			<%
+				SqlRowSet goods = (SqlRowSet) request.getAttribute("goods");
+				goods.next();
+
+				String images = goods.getString("images");
+
+				String[] imgArr = new String[]{"images/idcard_default_290_186.png"};
+				if (!StringUtils.isEmpty(images)) {
+					imgArr = images.split(",");
+				}
+
+				Integer type = goods.getInt("type");
+				String typeStr = "";
+				if (type != null && type == 1) {
+					typeStr = "上门自提";
+				} else {
+					typeStr = "民警送货";
+				}
+
+				String keeper = goods.getString("keeper") == null ? "" : goods.getString("keeper");
+				String pupil = goods.getString("pupil") == null ? "" : goods.getString("pupil");
+			%>
+
+
+
+			<div class='pull-left' style='margin-right: 40px;'>
+				<img class='img-rounded' style='width: 300px; height: 300px;'
+					src="<%=imgArr[0]%>">
+			</div>
+			<form class='form-horizontal' style='overflow: hidden;'>
+				<div class='form-group'>
+					<label class="col-sm-2 control-label">商品名称:</label>
+					<div class='col-sm-10'>
+						<p class='form-control-static'><%=goods.getString("name") == null ? "" : goods.getString("name")%></p>
+					</div>
+
+
+				</div>
+
+				<div class='form-group'>
+					<label class="col-sm-2 control-label">所需积分:</label>
+					<div class='col-sm-10'>
+						<p class='form-control-static'><%=goods.getString("score") == null ? "" : goods.getString("score")%></p>
+					</div>
+
+
+				</div>
+
+				<div class='form-group'>
+					<label class="col-sm-2 control-label">发货方式:</label>
+					<div class='col-sm-10'>
+						<p class='form-control-static'><%=typeStr%></p>
+					</div>
+				</div>
+
+				<c:if test="<%=type == 1%>">
+					<div class='form-group'>
+						<label class="col-sm-2 control-label">自提地址:</label>
+						<div class='col-sm-10'>
+							<p class='form-control-static'><%=goods.getString("remark") == null ? "" : goods.getString("remark")%></p>
+						</div>
+					</div>
+				</c:if>
+				<div class='form-group'>
+					<label class="col-sm-2 control-label">发布者:</label>
+					<div class='col-sm-10'>
+						<p class='form-control-static'><%=keeper%></p>
+					</div>
+				</div>
+
+				<div class='form-group'>
+					<label class="col-sm-2 control-label">提供者:</label>
+					<div class='col-sm-10'>
+						<a class='' id='btn_supply' data-toggle="modal"
+							data-target="#myModal"><%=pupil%></a>
+					</div>
+				</div>
+
+			</form>
+
+
+		</div>
+		<div class='panel-heading'>
+			<label">商品描述：</label>
+		</div>
+		<div class='panel-body'>
+
+			<p class=''><%=goods.getString("description") == null ? "" : goods.getString("description")%></p>
+
+
+			<%-- <div class='imgs'>
+				<c:forEach items="<%=imgArr%>" var="img">
+					<div style='margin-right: 40px;'>
+						<img class='img-rounded' style='width: 300px; height: 300px;'
+							src="${img }">
+					</div>
+
+				</c:forEach>
+
+
+			</div> --%>
+		</div>
+
+		<div class='center-block' style='width: 400px; margin-bottom: 20px;'>
+
+			<button class='btn btn-success' id="accept">通过</button>
+			<button class='btn btn-danger  ' id="reject">驳回</button>
+			<button class='btn btn-default ' id="return"
+				onclick="javascript:window.history.back(-1);return false;">返回</button>
+		</div>
+
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="myModalLabel">被监护人详情</h4>
+				</div>
+				<div class="modal-body">
+
+
+					<div class='row'>
+
+
+						<label class="col-sm-2 ">被监护人姓名：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getString("pupil") == null ? "" : goods.getString("pupil")%></label>
+						</div>
+
+						<label class="col-sm-2 ">社区：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getString("community") == null ? "" : goods.getString("community")%></label>
+						</div>
+					</div>
+
+
+					<div class='row'>
+						<label class="col-sm-2 ">被监护人类型：</label>
+						<div class='col-sm-4'>
+							<label><%=(goods.getInt("type") == 0 ? "精神障碍患者" : "残障人士")%></label>
+						</div>
+
+						<label class="col-sm-2 ">头像：</label>
+						<div class='col-sm-4'>
+							<img class='img-circle' style="width: 100px; height: 100px;"
+								src='<%=goods.getString("head_img") == null
+					? "images/header_default_96_96.png"
+					: goods.getString("head_img")%>'>
+						</div>
+					</div>
+
+
+					<div class='row'>
+						<label class="col-sm-2 ">身份证：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getString("idcard") == null ? "" : goods.getString("idcard")%></label>
+						</div>
+
+						<label class="col-sm-2 ">性别：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getInt("gender") == 0 ? "女" : "男"%></label>
+						</div>
+					</div>
+
+
+					<div class='row'>
+						<label class="col-sm-2 ">年龄：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getInt("age")%></label>
+						</div>
+
+						<label class="col-sm-2 ">住址：</label>
+						<div class='col-sm-4'>
+							<label><%=goods.getString("addr") == null ? "" : goods.getString("addr")%></label>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(function() {
+		$('[data-toggle="tooltip"]').tooltip();
+		var applyId =
+<%=goods.getInt("id")%>
+	;
+		var status
+		$("#reject").click(function(e) {
+			e.preventDefault();
+			var reject = true;
+			updateStatus(applyId, reject);
+
+		});
+
+		$("#accept").click(function(e) {
+			e.preventDefault();
+			var reject = false;
+			updateStatus(applyId, reject);
+
+		})
+		function updateStatus(applyId, reject) {
+			$.ajax({
+				type : "post",//不写此参数默认为get方式提交
+				async : true, //设置为异步
+				url : "<c:url value='/goodsSale/auditing'/>",//请求的uri
+				data : {
+					applyId : applyId,
+					reject : reject,
+				},//传递到后台的参数				
+				cache : false,
+				dataType : 'json',//后台返回前台的数据格式为json
+				success : function(data) {
+					alert("操作成功!");
+					window.history.back(-1);
+				},
+				error : function() {
+					alert('系统出现异常，请稍后再试!');
+				}
+			});
+		}
+
+	});
+</script>
+<!-- END BODY -->
+
+</html>

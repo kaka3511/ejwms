@@ -1,0 +1,760 @@
+<%@ page language="java"  contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>角色管理-数据字典管理</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="initial-scale=1.1,user-scalable=no">
+<%@ include file="../base/taglib.jsp"%>
+<%@ include file="../base/importCss.jsp"%>
+<!-- END PAGE LEVEL STYLES -->
+<style type="text/css">
+.help-block {
+	color: red;
+	float: left;
+	position: relative;
+}
+</style>
+<!-- BEGIN PAGE LEVEL SCRIPTS -->
+<link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css" />
+<%@ include file="../base/importJs.jsp"%>
+<script type="text/javascript" src="<c:url value='/js/common.js'/>"></script>
+<link rel="stylesheet" type="text/css" href="http://www.jeasyui.net/Public/js/easyui/themes/default/easyui.css">
+	<script type="text/javascript" src="http://www.jeasyui.net/Public/js/easyui/jquery.easyui.min.js"></script>
+<!-- END PAGE LEVEL SCRIPTS -->
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+	<ul class="page-breadcrumb breadcrumb">
+		<li><i class="icon-cog"></i>系统管理</li>
+		<li>权限管理</li>
+	</ul>
+<div class="panel panel-info" style="position: relative;">
+						<div class="panel-heading">
+							<br/>
+							权限管理列表
+							<br/>
+                           <button class="btn btn-primary add addEntityBtn" onclick="addsaverole()"  style="position:absolute; right: 15px; top: 12px;">添加</button>
+        
+     	</div>
+			   	<div class="panel-body" style="border-color: #FAFBFC;">
+				   	<div style="width: 99%;">
+					    <table id="jqGridPager" class="table table-bordered table-striped table-hover entity_table" >
+            <thead >
+                <tr style="background: #F5F5F5;">
+                	<th class="text-center" style="background: #3499db;color: #ffffff;"></th>
+                    <!-- <th class="text-center" style="background: #3499db;color: #ffffff;">ID</th> -->
+                    <th class="text-center" style="background: #3499db;color: #ffffff; width: 10%;">角色编码</th>
+                    <th class="text-center" style="background: #3499db;color: #ffffff; width: 10%;">角色名称</th>
+                    <th class="text-center" style="background: #3499db;color: #ffffff; width: 45%;">描述</th>
+                    <th class="text-center" style="background: #3499db;color: #ffffff; width: 10%;">创建时间</th>
+                    <th class="text-center" style="background: #3499db;color: #ffffff;">操作</th>
+                </tr>
+            </thead>
+        </table>
+					</div>
+			   	</div>
+
+</div>
+
+<div class="modal hide" id="updateRole">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onclick="colesshowRoleTable('updateRole')" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">修改角色</h4>
+            </div>
+            <div class="modal-body">
+					<form class="form-horizontal entityform" role="form">
+						<div class="form-group">
+						 <input type="hidden"  id="updateid" name="updateid">
+						    <input type="hidden"  id="type" name="type">
+							<label class="col-sm-2 control-label">角色编码</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="updateroleCode" name="updateroleCode"></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">角色名称</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="aupdateroleName" name="aupdateroleName"></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">描述</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="updatedesc" name="updatedesc"></div>
+						</div>						
+					</form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="colesshowRoleTable('updateRole')" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="updatesaverole()">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<div class="modal hide" id="addRole">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onclick="colesshowRoleTable('addRole')" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">添加角色</h4>
+            </div>
+            <div class="modal-body">
+               <form class="form-horizontal addroleform" role="form">
+						<div class="form-group">
+						    <input type="hidden"  id="type" name="type">
+							<label class="col-sm-2 control-label">角色编码</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="addCode" name="addCode"></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">角色名称</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="addName" name="addName"></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">描述</label>
+							<div class="col-sm-6"><input type="text" class="form-control col-sm-6" id="adddesc" name="adddesc"></div>
+						</div>						
+					</form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" onclick="colesshowRoleTable('addRole')" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="saveaddRole()">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+</body>
+<div class="modal hide" id="deleteRole">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" onclick="colesshowRoleTable('deleteRole')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">删除角色</h4>
+            </div>
+            <div class="modal-body">
+            <form class="form-horizontal deleteform" role="form">
+						<div class="form-group">
+						 <input type="hidden"  id="deleteid" name="deleteid">
+						 </div>
+			</form>
+                <p id="tipsMessage">确定要删除掉这条信息的</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="colesshowRoleTable('deleteRole')">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="delteRoleSave()">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<div class="modal hide" id="menuRole">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" onclick="colesshowRoleTable('menuRole')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="menurolecode">角色</h4>
+            </div>
+            <div class="modal-body">
+            <input type="hidden" id="selectRoleid" name="selectRoleid" >
+			<ul id="MyTree" class="easyui-tree "
+			checkbox="true" >
+	</ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="colesshowRoleTable('menuRole')">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<div class="modal hide" id="TremTables">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" >
+                <button type="button" class="close" data-dismiss="modal" onclick="colesTreamBox('TremTables')"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="menurolecode">关联角色 </h4>
+                <button class="btn btn-primary add" style="width: 180px; border-radius:5px 0px 0px 5px; margin-left: 5px;" onclick="showRoleTables(1)" >组织</button>
+                <button class="btn btn-primary" style="width: 180px; border-radius:0px;" onclick="showRoleTables(3)">人员类别</button>
+     			<button class="btn btn-primary add" style="width: 180px; border-radius:0px 5px 5px 0px;" onclick="showRoleTables(2)">用户</button>
+     			<input type="hidden" id="roleidtream" />
+            </div>
+            <div class="panel-bodyss hide" id="showlikeTables" style="width: 550px; margin-left: 20px; padding-top: 10px;">
+            
+            	<div class="form-group">
+					<label  class="col-sm-5" style="width: 140px;padding-top: 10px;">名字/手机号</label>
+					<div class="col-sm-6" style="margin-left: -60px;" ><input type="text" class="form-control col-sm-4" id="likesStr" name="liksStr" style="border-radius:5px 5px 5px 5px; width: 180px;"></div>
+					<button class="btn btn-primary add" style="width: 80px; border-radius:9px 9px 9px 9px;"  onclick="selectLikekey()">查询</button>		
+				</div>
+			<table id="likeUserTables" class="table table-bordered table-striped table-hover like_table " style="border:solid 1px #D7D7D7; border-radius:5px 5px 0px 0px;" >
+            <thead>
+                <tr style="background: #F5F5F5;">
+                    <th class="text-center" style="background: #EFEFEF;color: #969696;">用户名称</th>
+                    <th class="text-center" style="background: #EFEFEF;color: #969696;">手机号</th>
+            <th class="text-center" style="background: #EFEFEF;color: #969696;">操作</th> 
+                </tr>
+            </thead>
+        </table>
+
+			   	</div>
+            <div class="modal-bodyTree hide" id="showTreeTables" style="height:400px;width:550px;overflow:auto;padding: 10px 0px 0px 50px;">
+			<ul id="TremTree" class="easyui-tree "
+			checkbox="true" >
+						</ul>
+            </div>
+            
+             <div class="modal-bodyTree hide" id="showTypeTables" style="height:400px;width:550px;overflow:auto;padding: 10px 0px 0px 50px;">
+			<ul id="UserTypeTablse" class="easyui-tree "
+			checkbox="true" >
+						</ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="colesTreamBox('TremTables')">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+</body>
+<script type="text/javascript">
+ function colesshowRoleTable(showtablseid){
+ 	$("#"+showtablseid).removeClass("show");
+ 	$("#"+showtablseid).addClass("hide");
+ }
+	
+ function colesTreamBox(showtablseid){
+	 	$("#"+showtablseid).removeClass("show");
+	 	$("#"+showtablseid).addClass("hide");	
+
+
+ }
+ //打开啊弹出框的通用方法
+ function openshowRoleTable(showtablseid){
+ 	$("#"+showtablseid).addClass("show");
+ 	$("#"+showtablseid).removeClass("hide");
+ }	
+function menuRoleTreeTables(){
+	 var  p_nodes=$('#MyTree').tree("getChecked");//所有选中节
+}
+
+ 
+ function updatesaverole(){
+	 if($(".entityform").valid()){
+		 $.ajaxFileUpload( {
+				url : "/ejwms/role/roleMannage/updateRoleinfo.do",//请求的uri
+				type:"POST",//不写此参数默认为get方式提交
+					async:false,   //设置为同步
+					secureuri : false,//安全协议  
+					dataType : 'text',
+		      		data : {
+		      			id:$("#updateid").val(),
+		      			name:$("#aupdateroleName").val(),
+		      			code:$('#updateroleCode').val(),
+		      			desc:$('#updatedesc').val()
+		      			},//传递到后台的参数				
+		      		success : function(data) {
+		      			if(data=='true'){
+			      			$('.entityform')[0].reset();
+			      			$(".entity_table").dataTable().fnReloadAjax();
+			      				colesshowRoleTable("updateRole");
+								alert("操作成功!");
+			      			}else{
+			      				alert("编码已存在！");
+			      			}
+		      			
+		      	},error: function () {
+					alert('系统出现异常，请稍微再试!');
+		        }});
+	 }
+	 
+ }
+ 
+ 
+ function addsaverole(){
+		$('.addroleform')[0].reset();
+	 	$('.addroleform').validate().resetForm();
+	 	openshowRoleTable("addRole");
+ }
+ 
+ function saveaddRole(){
+	 if($(".entityform").valid()){
+		 $.ajaxFileUpload( {
+				url : "/ejwms/role/roleMannage/addRoleinfo.do",//请求的uri
+				type:"POST",//不写此参数默认为get方式提交
+					async:false,   //设置为同步
+					secureuri : false,//安全协议  
+					dataType : 'text',
+		      		data : {
+		      			id:$("#updateid").val(),
+		      			name:$("#addName").val(),
+		      			code:$('#addCode').val(),
+		      			desc:$('#adddesc').val()
+		      			},//传递到后台的参数				
+		      		success : function(data) {
+		      			if(data=='true'){
+			      			$(".entity_table").dataTable().fnReloadAjax();
+			      				colesshowRoleTable("addRole");
+								alert("操作成功!");
+			      			}else{
+			      				alert("编码已存在！");
+			      			}
+		      	},error: function () {
+					alert('系统出现异常，请稍微再试!');
+		        }});
+	 }
+ }
+ 
+ function delteRoleSave(){
+	 		$.ajax( {
+	 				type:"post",//不写此参数默认为get方式提交
+	 				async:false,   //设置为同步
+	 				url : "/ejwms/role//roleMannage/removeDate.do",//请求的uri
+	 				data : {removeId:$("#deleteid").val()},//传递到后台的参数				
+	 				cache : false,
+	 				dataType : 'json',//后台返回前台的数据格式为json
+	 				success : function(data) {
+	 					$(".entity_table").dataTable().fnReloadAjax();
+	 					colesshowRoleTable("deleteRole");
+	 					alert("删除成功");
+	 		},error: function () {
+	 			alert('系统出现异常，请稍微再试!');
+	       }
+	 		}); 
+	 	}
+$(function() {
+	 $("#jqGridPager").dataTable({
+			serverSide: false,	//分页，取数据等等的都放到服务端去
+			processing: true,	//载入数据的时候是否显示“载入中”
+			pageLength: 10,		//首次加载的数据条数
+			ordering: false,		//排序操作
+			"bLengthChange": false,
+			"bPaginate": true, //翻页功能
+			"bFilter": true,
+			"bDeferRender": true,
+			ajax:  {//类似jquery的ajax参数，基本都可以用。
+				type: "post",//后台指定了方式，默认get，外加datatable默认构造的参数很长，有可能超过get的最大长度。
+				url: "/ejwms/role/roleMannage/ListForPage.do",
+				dataType: "json",
+				dataSrc: "data",//默认data，也可以写其他的，格式化table的时候取里面的数据
+				data: function (d) {//d 是原始的发送给服务器的数据，默认很长。
+					var p={};
+					return p;
+		        },
+		    },
+		    "aoColumnDefs": [{
+	        	sDefaultContent: '',
+	        	aTargets: [ '_all' ]
+	        }],
+        columns: [//对应上面thead里面的序列
+      	        {data: "rows", "sClass" : "text-center"},
+      	        {data: "role_code", "sClass":"text-center"},
+      	        {data: "role_name", "sClass":"text-center"},
+      	        {data: "description", "sClass" : "text-center" },
+      	      	{data: "createtime", "sClass" : "text-center" },
+      	      	{data: function (e) {//这里给最后一列返回一个操作列表
+  	        	//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+  	            var sContent = '<button class="btn btn-primary modify">修改</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-primary delete">删除</button> &nbsp;&nbsp;&nbsp;<button class="btn btn-primary menuRole">权限菜单</button> &nbsp;&nbsp;&nbsp;<button class="btn btn-primary TermRole">人员</button>';
+  	            return sContent;
+  	        }, "sClass" : "text-center" }
+  	    ],
+  	      initComplete: function (setting, json) {
+  	        //初始化完成之后替换原先的搜索框。
+  	        //本来想把form标签放到hidden_filter 里面，因为事件绑定的缘故，还是拿出来。
+  	       // $(tablePrefix+"_filter").html("<form id='filter_form'>" + $("#hidden_filter").html() + "</form>");
+  	    },
+  	    language: {
+  	        lengthMenu: '<select class="form-control input-xsmall">' + '<option value="5">5</option>' + '<option value="10">10</option>' + '<option value="20">20</option>' + '<option value="30">30</option>' + '<option value="40">40</option>' + '<option value="50">50</option>' + '</select>条记录',//左上角的分页大小显示。
+  	        processing: "载入中",//处理页面数据的时候的显示
+  	        paginate: {//分页的样式文本内容。
+  	            previous: "上一页",
+  	            next: "下一页",
+  	            first: "第一页",
+  	            last: "最后一页"
+  	         },
+  	         search: "关键字查询      ",
+  	         zeroRecords: "没有内容",//table tbody内容为空时，tbody的内容。
+  	         //下面三者构成了总体的左下角的内容。
+  	         info: "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+  	         infoEmpty: "0条记录",//筛选为空时左下角的显示。
+  	         infoFiltered: ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+  	    }
+  	    
+  	    
+  	
+  		 });
+	 
+	 //关闭弹出框通用方法
+
+	//修改设备
+		 $(document).on('click','.modify',function(){//修改方案	
+		 	$('.entityform')[0].reset();
+		 	$('.entityform').validate().resetForm();
+		 	aData = $(".entity_table").DataTable().row($(this).parents("tr")).data();
+		 	$('#updateroleCode').val(aData.role_code);
+		 	$('#aupdateroleName').val(aData.role_name);
+		 	$('#updatedesc').val(aData.description);
+		 	$('#updateid').val(aData.role_id);
+			updateshowRoleTable();
+		 });
+	 
+
+		 //删除设备
+		 $(document).on('click','.delete',function(){
+			 removeRoleTables('deleteRole');
+			 	$('.deleteform')[0].reset();
+			 	$('.deleteform').validate().resetForm();
+		 		aData = $(".entity_table").DataTable().row($(this).parents("tr")).data();
+		 		$("#deleteid").val(aData.role_id);
+		 		$("#tipsMessage").html("你确定要删除角色编码为："+aData.role_code+" 的数据吗?");
+		 		
+		 		
+});
+		 
+		 $(document).on('click','.menuRole',function(){//修改方案	
+			 aData = $(".entity_table").DataTable().row($(this).parents("tr")).data();
+			 $("#selectRoleid").val(aData.role_id);
+			 $("#menurolecode").html(aData.role_code+"-权限菜单关联");
+			 showMenuRoleTables(aData.role_id);
+		  });
+		 
+		 
+		 $(document).on('click','.TermRole',function(){//修改方案	
+			 aData = $(".entity_table").DataTable().row($(this).parents("tr")).data();
+		 	showTramTables(aData.role_id);
+		  });
+		 
+
+		 
+	 
+	// 添加角色信息
+	 function addshowRoleTable(){
+	 	openshowRoleTable('addRole');
+	 }
+	 //修改角色信息
+	 function updateshowRoleTable(){
+	 	openshowRoleTable('updateRole');
+	 }
+	 function showRoleTablse(){
+	 	openshowRoleTable('deleteRole');
+	 }
+	 function removeRoleTables(){
+	 	openshowRoleTable('deleteRole');
+	 }
+	 
+
+});
+
+$(function(){
+	$(".entityform").validate({  
+		  errorElement: 'em', 
+			  errorClass: 'help-block',
+			  focusInvalid: false,   
+			  rules:{
+		            "aupdateroleName":{
+		                required:true,
+		                maxlength:100
+		            },"updateroleCode":{
+		                required:true,
+		                maxlength:30
+		            },"updatedesc":{
+		                required:true,
+		                maxlength:30
+		            }
+		        },
+		        messages:{
+		        	"aupdateroleName":{
+		                required:"必填",
+		                maxlength:"不超过100位"
+		            },"updateroleCode":{
+		                required:"必填",
+		                maxlength:"不超过30位"
+		            }
+		            ,"updatedesc":{
+		                required:"必填",
+		                maxlength:"不超过250位"
+		            }
+		        }       
+	});
+
+	});
+	
+	
+$(function(){
+	$(".addroleform").validate({  
+		  errorElement: 'em', 
+			  errorClass: 'help-block',
+			  focusInvalid: false,   
+			  rules:{
+		            "addName":{
+		                required:true,
+		                maxlength:100
+		            },"addCode":{
+		                required:true,
+		                maxlength:30
+		            },"adddesc":{
+		                required:true,
+		                maxlength:30
+		            }
+		        },
+		        messages:{
+		        	"addName":{
+		                required:"必填",
+		                maxlength:"不超过100位"
+		            },"addCode":{
+		                required:"必填",
+		                maxlength:"不超过30位"
+		            }
+		            ,"adddesc":{
+		                required:"必填",
+		                maxlength:"不超过250位"
+		            }
+		        }       
+	});
+
+	});
+
+</script>
+
+<script type="text/javascript">
+function showMenuRoleTables(showroleid){
+	openshowRoleTable("menuRole");
+    $('#MyTree').tree({   
+         checkbox: true, 
+         onlyLeafCheck:true,
+         url: '/ejwms/menuRole/menuRoleTree.do?Id=0&roleid='+showroleid,   
+         onBeforeExpand:function(node,param){  
+         },  
+         onCheck:function(node, checked){
+       		$.ajax( {
+ 				type:"post",//不写此参数默认为get方式提交
+ 				async:false,   //设置为同步
+ 				url : "/ejwms/menuMannage/updateOrinsertMenuRole.do",//请求的uri
+ 				data : {checked:checked,menuid:node.id,roleid: $("#selectRoleid").val(),attributes:node.attributes.id},//传递到后台的参数				
+ 				cache : false,
+ 				dataType : 'json',//后台返回前台的数据格式为json
+ 				success : function(data) {
+ 					if(data=="false"){
+ 						alert("失败！！！");
+ 					}
+
+ 		},error: function () {
+ 			alert('系统出现异常，请稍微再试!');
+        }
+ 		}); 
+            } 
+    });
+}
+
+
+function showTramTables(showroleid){
+	
+ 	$("#showlikeTables").addClass("hide");		
+ 	$("#showlikeTables").removeClass("show");
+ 	$("#showTreeTables").addClass("hide");		
+ 	$("#showTreeTables").removeClass("show");	 	
+ 	$("#showTypeTables").addClass("hide");		
+ 	$("#showTypeTables").removeClass("show");
+	openshowRoleTable("TremTables");
+	
+	$("#roleidtream").val(showroleid);
+  
+}
+
+
+function showRoleTables(showid){
+	//
+	switch (showid) {
+	case 1:	
+		  $('#TremTree').tree({   
+		         checkbox: true, 
+		         onlyLeafCheck:true,
+		         url: '/ejwms/UserRole/EasyTreeDatejson.do?id='+$("#roleidtream").val(),   
+		         onBeforeExpand:function(node,param){  
+		         },  
+		         onCheck:function(node, checked){
+		       		$.ajax( {
+		 				type:"post",//不写此参数默认为get方式提交
+		 				async:false,   //设置为同步
+		 				url : "/ejwms/UserRole/updateUserRole.do",//请求的uri
+		 				data : {checked:checked,userid:node.id,roleid: $("#roleidtream").val(),userroleid:node.attributes.id,Type:"1"},//传递到后台的参数				
+		 				cache : false,
+		 				dataType : 'json',//后台返回前台的数据格式为json
+		 				success : function(data) {
+		 					if(data=="false"){
+		 						alert("失败！！！");
+		 					}else{
+		 						 $("#TremTree").tree("reload");	
+		 					}
+
+		 		},error: function () {
+		 			alert('系统出现异常，请稍微再试!');
+		        }
+		 	}); 
+		            } 
+		    });
+		 	$("#showlikeTables").addClass("hide");		
+		 	$("#showlikeTables").removeClass("show");
+		 	$("#showTreeTables").addClass("show");		
+		 	$("#showTreeTables").removeClass("hide");	 	
+		 	$("#showTypeTables").addClass("hide");		
+		 	$("#showTypeTables").removeClass("show");
+
+	 	
+			break;		
+		case 2:
+		$("#likeUserTables").dataTable().fnClearTable();
+	 		$("#showlikeTables").addClass("show");		
+	 		$("#showlikeTables").removeClass("hide");
+	 		$("#showTreeTables").addClass("hide");		
+	 		$("#showTreeTables").removeClass("show");	 	
+	 		$("#showTypeTables").addClass("hide");		
+	 		$("#showTypeTables").removeClass("show");
+	 	break;
+		case 3:
+		 	$("#showlikeTables").addClass("hide");		
+		 	$("#showlikeTables").removeClass("show");
+		 	$("#showTreeTables").addClass("hide");		
+		 	$("#showTreeTables").removeClass("show");	 	
+		 	$("#showTypeTables").addClass("show");		
+		 	$("#showTypeTables").removeClass("hide");
+			$('#UserTypeTablse').tree({   
+		         checkbox: true, 
+		         onlyLeafCheck:true,
+		         url: '/ejwms/UserType/treeUserType.do?id='+$("#roleidtream").val(),   
+		         onBeforeExpand:function(node,param){  
+		         },  
+		         onCheck:function(node, checked){
+		        	 if(node.attributes!=undefined){
+		       		$.ajax( {
+		 				type:"post",//不写此参数默认为get方式提交
+		 				async:false,   //设置为同步
+		 				url : "/ejwms/UserRole/updateUserRole.do",//请求的uri
+		 				data : {checked:checked,userid:node.id,roleid: $("#roleidtream").val(),userroleid:node.attributes.id,Type:"2"},//传递到后台的参数				
+		 				cache : false,
+		 				dataType : 'json',//后台返回前台的数据格式为json
+		 				success : function(data) {
+		 					if(data=="false"){
+		 						alert("失败！！！");
+		 					}else{
+		 						 $("#UserTypeTablse").tree("reload");	
+		 					}
+		 		},error: function () {
+		 			alert('系统出现异常，请稍微再试!');
+		        }
+		 		}); 
+		        	}else{
+		        		 alert("选中的不是可选的节点");
+		        }
+		    } 
+		    });
+			break;
+		default:
+			
+			break;
+		
+	}
+	
+}
+
+
+ var dataTeabls=null;
+ $(function(){
+ $("#likeUserTables").dataTable({
+		serverSide: false,	//分页，取数据等等的都放到服务端去
+		processing: true,	//载入数据的时候是否显示“载入中”
+		pageLength: 10,		//首次加载的数据条数
+		ordering: false,		//排序操作
+		"bLengthChange": false,
+		"bPaginate": true, //翻页功能
+		"bFilter": false,
+		"bDeferRender": true,
+	    "aoColumnDefs": [{
+	    	sDefaultContent: '',
+	    	aTargets: [ '_all' ]
+	    }],
+	columns: [//对应上面thead里面的序列
+		        {data: "name", "sClass" : "text-center"},
+		        {data: "cellPhone", "sClass":"text-center"},
+ 		      	{data: function (e) {//这里给最后一列返回一个操作列表
+		      	if(e!=""){
+ 		      	var sContent="";
+ 		      	if(e.check==true){
+ 		      	var sContent='<input name="Fruit" type="checkbox" value="" class="modifyCheck"  checked="'+e.check+'" />';	
+ 		      	}else{
+ 	     		var sContent='<input name="Fruit" type="checkbox" value="" class="modifyCheck"   />';
+ 		      		}
+ 		      	
+ 		      	}
+// 	      	//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+// 	       ///   var sContent = '<button class="btn btn-primary modify">修改</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-primary delete">删除</button> &nbsp;&nbsp;&nbsp;<button class="btn btn-primary menuRole">权限菜单</button> &nbsp;&nbsp;&nbsp;<button class="btn btn-primary TermRole">人员</button>';
+ 	          return sContent;
+ 	      }, "sClass" : "text-center" }
+	  ],
+	    initComplete: function (setting, json) {
+	      //初始化完成之后替换原先的搜索框。
+	      //本来想把form标签放到hidden_filter 里面，因为事件绑定的缘故，还是拿出来。
+	     // $(tablePrefix+"_filter").html("<form id='filter_form'>" + $("#hidden_filter").html() + "</form>");
+	  },
+	  language: {
+	    //  lengthMenu: '<select class="form-control input-xsmall">' + '<option value="5">5</option>' + '<option value="10">10</option>' + '<option value="20">20</option>' + '<option value="30">30</option>' + '<option value="40">40</option>' + '<option value="50">50</option>' + '</select>条记录',//左上角的分页大小显示。
+	      processing: "载入中",//处理页面数据的时候的显示
+	      paginate: {//分页的样式文本内容。
+	          previous: "上一页",
+	          next: "下一页",
+	          first: "第一页",
+	          last: "最后一页"
+	       },
+	       search: "关键字查询      ",
+	       zeroRecords: "没有内容",//table tbody内容为空时，tbody的内容。
+	       //下面三者构成了总体的左下角的内容。
+	       info: "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+	       infoEmpty: "0条记录",//筛选为空时左下角的显示。
+	       infoFiltered: ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+	  }
+		 });
+ 
+		 $(document).on('click','.modifyCheck',function(){//修改方案	
+ 		var aDatas = $("#likeUserTables").DataTable().row($(this).parents("tr")).data();
+
+			$.ajax( {
+ 				type:"post",//不写此参数默认为get方式提交
+ 				async:false,   //设置为同步
+ 				url : "/ejwms/UserRole/updateUserRole.do",//请求的uri
+ 				data : {checked:this.checked,userid:aDatas.id,roleid: $("#roleidtream").val(),userroleid:aDatas.userroleid,Type:"3"},//传递到后台的参数				
+ 				cache : false,
+ 				dataType : 'json',//后台返回前台的数据格式为json
+ 				success : function(data) {
+ 					if(data=="false"){
+ 						alert("失败！！！");
+ 					}else{
+ 						selectLikekey();
+ 					}
+
+ 		},error: function () {
+ 			alert('系统出现异常，请稍微再试!');
+        }
+ 	}); 
+   });
+ });
+	 	 
+function selectLikekey(){
+	$("#likeUserTables").dataTable().fnClearTable();
+		$.ajax( {
+				type:"post",//不写此参数默认为get方式提交
+				async:false,   //设置为同步
+				url : "/ejwms/UserRole/selectLikeToString.do?id="+$("#roleidtream").val()+"&likeStr="+$("#likesStr").val(),//请求的uri//传递到后台的参数				
+				cache : false,
+				dataType : 'json',//后台返回前台的数据格式为json
+				success : function(data) {					
+					$("#likeUserTables").dataTable().fnAddData(data.data, true);
+		},error: function () {
+			alert('系统出现异常，请稍微再试!');
+
+		}});
+}
+</script>
+</html>

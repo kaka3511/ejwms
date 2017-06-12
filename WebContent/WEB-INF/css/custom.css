@@ -1,0 +1,72 @@
+/* here you can put your own css to customize and override the theme */
+
+.ui-jqgrid .ui-jqgrid-bdiv{
+	overflow-x: hidden !important;
+}
+.table tbody tr.active:hover  td, .table tbody tr.active:hover  th{
+	background-color: #dff0d8 !important;
+}
+.ui-jqgrid-hbox .ui-jqgrid-labels{
+background-color:rgb(52, 153, 219);
+}
+.ui-jqgrid-hbox .ui-jqgrid-labels   .active{
+background-color:rgb(52, 153, 219);
+}
+.modal-dialog{
+	z-index:10050;
+}
+ th{
+  	text-align: center;;
+  }
+   thead #jqGrid_cb{
+  	text-align: left;;
+  }
+ td{
+ 	word-wrap:break-word;
+ }
+ td .btn{
+ 	margin-right: 10px;
+ 	margin-top:2px;
+ 	margin-bottom:2px;
+ }
+.form-horizontal .form-group label{
+	
+	text-align: right;
+} 
+form  .star:BEFORE {
+	content: '*';
+	color:red;
+	margin-right:4px;
+}
+
+.main{
+	background-color: #efefef;
+	padding-right:0px!important;
+	padding-top:0px!important;
+	padding-left:0px!important;
+}
+
+.breadcrumb{
+	margin-bottom:0px;
+}
+
+.panel .panel-body{
+	padding: 0px;
+}
+.panel .panel-body form{
+	margin-top: 20px;
+}
+.panel{
+	border-width: 0px;
+	margin-bottom:0px;
+}
+.page-content { 
+		padding: 0px;
+	}
+	
+	body{
+	padding-right:10px!important;
+	padding-top:10px!important;
+	padding-left:10px!important;
+		overflow-x:hidden;
+	}

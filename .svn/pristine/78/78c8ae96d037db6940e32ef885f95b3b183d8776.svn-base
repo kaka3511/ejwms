@@ -1,0 +1,843 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+   	<title>流程配置</title>
+	<meta charset="utf-8"/>
+	<!-- BEGIN GLOBAL MANDATORY STYLES -->          
+	<link href="http://114.55.98.184:7081/ejwms/plugins/font-awesome-master/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+	<link href="http://114.55.98.184:7081/ejwms/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+	<link href="http://114.55.98.184:7081/ejwms/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+	<!-- END GLOBAL MANDATORY STYLES -->  
+	<!-- BEGIN THEME STYLES --> 
+    <link href="http://114.55.98.184:7081/ejwms/css/style-conquer.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/style.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/menu-icon.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/plugins.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/pages/tasks.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/themes/default.css" rel="stylesheet" type="text/css" id="style_color"/>
+    <link href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-dialog/css/bootstrap-dialog.css" rel="stylesheet" type="text/css"/>
+    <link href="http://114.55.98.184:7081/ejwms/css/custom.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datatables/dataTables.bootstrap.css" type="text/css"/>
+	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-timepicker/compiled/timepicker.css" type="text/css"/>
+   	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-timepicker/less/timepicker.less" type="text/css"/>
+   	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-select/bootstrap-select.css" type="text/css"/>
+   	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-select2/css/select2.min.css" type="text/css"/>
+   	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-select2/css/select2-bootstrap.min.css" type="text/css"/>
+   	
+   	<link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/jqgrid/css/ui.jqgrid-bootstrap.css" type="text/css"/>
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" type="text/css"/>
+   
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/Gallery-2.21.3/css/blueimp-gallery.min.css" type="text/css"/>
+   
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datepicker/css/datepicker.css">  
+   
+   <link href="http://114.55.98.184:7081/ejwms/plugins/lightGallery-1.3.5/css/lightgallery.min.css" rel="stylesheet" />
+   
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/cropper/cropper.min.css">
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/plugins/cropper/main.css">
+   <link rel="stylesheet" href="http://114.55.98.184:7081/ejwms/css/viewer.min.css">
+    <!-- END THEME STYLES -->
+
+   	<!-- BEGIN CORE PLUGINS -->   
+	<!--[if IE]> 
+	<script src="http://114.55.98.184:7081/ejwms/plugins/html5.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/html5shiv.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/respond.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/excanvas.min.js" type="text/javascript"></script> 
+	<script src="http://114.55.98.184:7081/ejwms/plugins/excanvas.compiled.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/es5-shim.min.js" type="text/javascript"></script> 
+	<![endif]-->  
+	
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery.js" type="text/javascript"></script>
+	
+	<!-- IMPORTANT! Load jquery-ui-1.10.3.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery-ui/jquery-ui-1.10.3.custom.min.js" type="text/javascript" ></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript" ></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-dialog/js/bootstrap-dialog.js" type="text/javascript" ></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-hover-dropdown/twitter-bootstrap-hover-dropdown.min.js" type="text/javascript" ></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery.blockui.min.js" type="text/javascript"></script>  
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery.cookie.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/uniform/jquery.uniform.min.js" type="text/javascript" ></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery-validation/dist/jquery.validate.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datatables/jquery.dataTables.min.js"></script>
+   	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datatables/dataTables.bootstrap.js"></script>
+   	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datatables/dataTables.plug-ins.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-select/bootstrap-select.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-select2/js/select2.min.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/ajaxfileupload.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/common.js"></script>
+    
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/jqgrid/js/i18n/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/jqgrid/js/jquery.jqGrid.js"></script>
+    
+   
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/jquery.form.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-tagsinput/bootstrap-tagsinput.js"></script>
+    <script src="http://114.55.98.184:7081/ejwms/plugins/Gallery-2.21.3/js/jquery.blueimp-gallery.min.js"></script>
+    <script src="http://114.55.98.184:7081/ejwms/plugins/jquery.mousewheel.min.js"></script>
+   
+    <script src="http://114.55.98.184:7081/ejwms/plugins/lightGallery-1.3.5/js/lightgallery.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/lightGallery-1.3.5/js/lg-zoom.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/lightGallery-1.3.5/js/lg-thumbnail.min.js" type="text/javascript"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/lightGallery-1.3.5/js/lg-fullscreen.min.js" type="text/javascript"></script>
+   
+   
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/plugins/bootstrap-datepicker/js/locales/bootstrap-datepicker.zh-CN.js"></script>
+
+	<script src="http://114.55.98.184:7081/ejwms/plugins/cropper/cropper.min.js"></script>
+	<script src="http://114.55.98.184:7081/ejwms/plugins/viewer.min.js"></script>
+  
+	<!-- END CORE PLUGINS -->
+	
+	<script>
+		//$.jgrid.defaults.width = 780;
+		$.jgrid.defaults.rowList = [10,20,30,40];
+		$.jgrid.defaults.responsive = true;
+		$.jgrid.defaults.styleUI = 'Bootstrap';
+		
+		BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_DEFAULT] = '提示信息';
+        BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_INFO] = '提示信息';
+        BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_PRIMARY] = '提示信息';
+        BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_SUCCESS] = '成功';
+        BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_WARNING] = '警告';
+        BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_DANGER] = '危险';
+        BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+        BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '取消';
+        BootstrapDialog.DEFAULT_TEXTS['CONFIRM'] = '确定';
+	</script>
+   	<link rel="stylesheet" type="text/css" href="http://114.55.98.184:7081/ejwms/css/style.min.css" />
+   	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/jstree.min.js"></script>
+   	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/common.js"></script>
+    <script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/page.js"></script>
+	<script type="text/javascript" src="http://114.55.98.184:7081/ejwms/js/ajaxfileupload.js"></script>
+   	<!-- END PAGE LEVEL SCRIPTS -->
+	<style>
+	.addform.flowform .help-block{margin:0;}
+	.addform.flowform em.help-block{margin:0;position:absolute;z-index:99;right:0;padding-right:10px;line-height:34px;color:#c00;}
+	</style>
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+<ul class="page-breadcrumb breadcrumb">
+    <li>
+	   <i class="icon-cog"></i>系统管理
+    </li>
+    <li>流程配置</li>
+</ul>
+<div class="panel panel-info" style="position: relative;">
+   	<div class="panel-heading" style='overflow: hidden;height: 50px;'>
+		流程配置
+   	</div>
+   	<div class="panel-body row" style="margin-top:14px;">
+	   	<div class="col-md-12 col-md-6">
+			<button class="btn btn-primary add addEntityBtn"  style="float:right; right: 30px; top: 12px;">添加</button>
+	   		<table id="account_table" class="table table-bordered table-striped table-hover">
+	            <thead>
+	                <tr style="background: #F5F5F5;">
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">序号</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;width:20%">名称</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">操作</th>
+	                </tr>
+	            </thead>
+	        </table>
+        </div>
+		<div class="col-md-12 col-md-6 pull-right">
+			<button class="btn btn-primary add addEntityBtn2"  style="float:right; right: 30px; top: 12px;">添加</button>
+			<table id="account_table2" class="table table-bordered table-striped table-hover">
+	            <thead>
+	                <tr style="background: #F5F5F5;">
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;" hidden="hidden"></th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">序号</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;width:20%">名称</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">操作</th>
+	                </tr>
+	            </thead>
+	        </table>
+		</div>
+   	</div>
+</div>
+
+<!-- 添加流程 -->
+<div class="modal fade" id="entityModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+		<div class="modal-content">
+			 <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title"></h4>
+			 </div>
+			 <div class="modal-body">
+				<form class="addtable addform flowform">
+					
+					<!-- <div class="form-group">
+						<div class="input-group" style="width: 100%;">
+							<label class="input-group-addon" style="width: 100px;">序号：</label>
+							<input class="_account form-control flow_id" name="flow_id"
+								style="width: 100%;" />
+						</div>
+					</div> -->
+					<div class="form-group">
+						<div class="input-group" style="width: 100%;">
+							<label class="input-group-addon" style="width: 100px;">类型：</label>
+							<select class="chooserole form-control" name="addType" id="addType"
+							style="width: 100%;">
+								<option value="0">网络办事</option>
+								<option value="1">自助登记</option>
+						</select>
+						</div>
+					</div>
+				</form>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" 
+					   data-dismiss="modal" onclick="javascript:$('.addform').validate().resetForm();$('.addform')[0].reset();">关闭
+					</button>
+					<button type="button" class="btn btn-primary addchild" id="param_summit1">
+															添加
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 添加节点 -->
+<div class="modal fade" id="entityModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h4 class="modal-title"></h4>
+		 </div>
+         <div class="modal-body">
+			<form class="addtable addform2 flowform">
+		   		<!-- <input  type="hidden" name="userid" id="userid" /> -->
+				<div class="form-group" style="display:none;">
+					<div class="input-group" style="width: 100%;">
+						<label class="input-group-addon" style="width: 100px;"></label>
+						<input class="_account form-control flow_id" id="node_id" name="node_id"
+							style="width: 100%;" />
+					</div>
+				</div>
+				<!-- <div class="form-group">
+					<div class="input-group" style="width: 100%;">
+						<label class="input-group-addon" style="width: 100px;">序号：</label>
+						<input class="_account form-control flow_id" id="flow_node_index" name="flow_node_index"
+							style="width: 100%;" />
+					</div>
+				</div> -->
+				<div class="form-group">
+					<div class="input-group" style="width: 100%;">
+						<label class="input-group-addon" style="width: 100px;">名称：</label>
+						<input class="_account form-control name" id="node_name" name="node_name"
+							style="width: 100%;" />
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-group" style="width: 100%;">
+						<label class="input-group-addon" style="width: 100px;">所属流程：</label>
+						<select class="chooserole form-control status" id="flow_id" name="flow_type"
+							style="width: 100%;" disabled="disabled"/>
+							<option value="1" >网络办事</option>
+							<option value="2" >自助登记</option>
+						</select>
+					</div>
+				</div>
+			</form>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" 
+				   data-dismiss="modal" onclick="javascript:$('.addform2').validate().resetForm();$('.addform2')[0].reset();">关闭
+				</button>
+				<button type="button" class="btn btn-primary addchild" id="param_summit2">
+														保存
+				</button>
+			</div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- 人员 -->
+<div class="modal fade" id="personModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			 <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title"></h4>
+			 </div>
+			 <div class="modal-body">
+				<button type="button" class="btn btn-primary addchild addEntityBtn3"  style="position: absolute;">
+														添加
+				</button>
+				<table id="likeUserTables" class="table table-bordered table-striped table-hover like_table " style="border:solid 1px #D7D7D7; border-radius:5px 5px 0px 0px;" >
+					<thead>
+						<tr style="background: #F5F5F5;">
+							<th class="text-center" style="background: #3499db;color: #ffffff;">序号</th>
+							<th class="text-center" style="background: #3499db;color: #ffffff;">姓名</th>
+							<th class="text-center" style="background: #3499db;color: #ffffff;">操作</th> 
+						</tr>
+					</thead>
+				</table>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" 
+					   data-dismiss="modal">关闭
+					</button>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+<!--人员添加-->
+<div class="modal fade" id="addpersonModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			 <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title"></h4>
+			 </div>
+			 <div class="modal-body">
+				<form class="addtable addform3 flowform">
+					<input  type="hidden" name="userid" id="userid" />
+					
+					<!-- <div class="form-group">
+						<div class="input-group" style="width: 100%;">
+							<label class="input-group-addon" style="width: 100px;">姓名：</label>
+							<input class="_account form-control name" name="name"
+								style="width: 100%;" />
+						</div> 
+					</div> -->
+					<div class="form-group">
+							<div class="input-group" style="width: 75%;">
+								<label class="input-group-addon" style="width: 100px;">用户列表</label>
+								<select class="chooserole form-control " name="user" id="user"
+									style="width: 100%;">
+								</select>
+							</div>
+						</div>
+				</form>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" 
+					   data-dismiss="modal" onclick="javascript:$('.addform3').validate().resetForm();$('.addform3')[0].reset();$('#personModal').modal('show');">关闭
+					</button>
+					<button type="button" class="btn btn-primary addchild" id="param_summit3">
+															添加
+					</button>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+$(function() {
+	//流程列表
+	$("#account_table").dataTable(
+		{
+			serverSide : false, //分页，取数据等等的都放到服务端去
+			processing : true, //载入数据的时候是否显示“载入中”
+			pageLength : 10, //首次加载的数据条数
+			ordering : false, //排序操作
+			"bLengthChange" : false,
+			"bPaginate" : true, //翻页功能
+			"bFilter" : false,
+			"bDeferRender" : true,
+			destroy: true,
+			ajax : {//类似jquery的ajax参数，基本都可以用。
+				type : "post",//后台指定了方式，默认get，外加datatable默认构造的参数很长，有可能超过get的最大长度。
+				url : "/ejwms/flow/list.do",
+				dataType : "json",
+				dataSrc : "data",//默认data，也可以写其他的，格式化table的时候取里面的数据
+				data : function(d) {//d 是原始的发送给服务器的数据，默认很长。
+					var p = {};
+					p.deptTypeNo = 0;
+					p.type=0;
+					return p;
+				},
+			},
+			"aoColumnDefs" : [ {
+				sDefaultContent : '',
+				aTargets : [ '_all' ]
+			} ],
+			columns : [//对应上面thead里面的序列
+			           {
+							data : "index",
+							"sClass" : "text-center"
+						},
+						{
+							data : "name",
+							"sClass" : "text-center"
+						},
+					{
+						data : function(e) {//这里给最后一列返回一个操作列表
+							//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+							 var sContent = '<button class="btn-primary delete" id="delBtn1">删除</button>';
+							 /*  <button class="btn-primary modify">修改</button>&nbsp;&nbsp;&nbsp;*/
+							return sContent; 
+						},
+						"sClass" : "text-center"
+					} ],
+			initComplete : function(setting, data) {
+				/* if(data.total!=null){
+					PageSpace.initPages(document.getElementById("page"), data.total, 10, pageEvent);
+				} */
+			},
+			language : {
+				lengthMenu : '<select class="form-control input-xsmall">'
+						+ '<option value="5">5</option>'
+						+ '<option value="10">10</option>'
+						+ '<option value="20">20</option>'
+						+ '<option value="30">30</option>'
+						+ '<option value="40">40</option>'
+						+ '<option value="50">50</option>'
+						+ '</select>条记录',//左上角的分页大小显示。
+				processing : "载入中",//处理页面数据的时候的显示
+				paginate : {//分页的样式文本内容。
+					previous : "上一页",
+					next : "下一页",
+					first : "第一页",
+					last : "最后一页"
+				},
+				search : "关键字查询",
+				zeroRecords : "没有内容",//table tbody内容为空时，tbody的内容。
+				//下面三者构成了总体的左下角的内容。
+				info : "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+				infoEmpty : "0条记录",//筛选为空时左下角的显示。
+				infoFiltered : ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+			}
+		}
+	);
+
+	
+	$(document).on('click','#account_table tbody tr',function(){//修改方案	
+		var aData = $("#account_table").DataTable().row($(this)).data();
+		console.log(aData.child);//传个id到后台
+		$("#account_table2").dataTable(
+			{
+				serverSide : false, //分页，取数据等等的都放到服务端去
+				processing : true, //载入数据的时候是否显示“载入中”
+				pageLength : 10, //首次加载的数据条数
+				ordering : false, //排序操作
+				"bLengthChange" : false,
+				"bPaginate" : true, //翻页功能
+				"bFilter" : false,
+				"bDeferRender" : true,
+				destroy: true,
+				ajax : {//类似jquery的ajax参数，基本都可以用。
+					type : "post",//后台指定了方式，默认get，外加datatable默认构造的参数很长，有可能超过get的最大长度。
+					url : "/ejwms/flowNode/list.do?id="+aData.id,
+					dataType : "json",
+					dataSrc : "data",//默认data，也可以写其他的，格式化table的时候取里面的数据
+					data : function(d) {//d 是原始的发送给服务器的数据，默认很长。
+						var p = {};
+						p.deptTypeNo = 0;
+						p.type=0;
+						return p;
+					},
+					callback: function(){  
+				      	
+				    }
+				},
+				"aoColumnDefs" : [ {
+					sDefaultContent : '',
+					aTargets : [ '_all' ]
+				} ],
+				columns : [//对应上面thead里面的序列
+				        {
+							data : "id",
+							"sClass" : "hide"
+						},
+						{
+							data : "index",
+							"sClass" : "text-center"
+						},
+						{
+							data : "name",
+							"sClass" : "text-center"
+						},
+						{
+							data : function(e) {//这里给最后一列返回一个操作列表
+								//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+								 var sContent = '<button class="btn-primary modify">修改</button>&nbsp;&nbsp;&nbsp;<button class="btn-primary delete" id="delBtn2" >删除</button>&nbsp;&nbsp;&nbsp;<button class="btn-primary person" >人员</button>';
+								
+								return sContent; 
+							},
+							"sClass" : "text-center"
+						} ],
+				initComplete : function(setting, data) {
+					/* if(data.total!=null){
+						PageSpace.initPages(document.getElementById("page"), data.total, 10, pageEvent);
+					} */
+					
+						$(document).on('click','#account_table2 .modify',function(){//修改方案	
+							var form = $('.addform2');
+							form[0].reset();
+							form.validate().resetForm();
+							aData = $("#account_table2").DataTable().row($(this).parents("tr")).data();
+							form.find(".flow_id").val(aData.id).attr("disabled", "disabled");
+							form.find(".name").val(aData.name);
+							$('#entityModal2 .modal-title').html("流程配置修改");
+							$('#entityModal2').modal('show');
+						});
+						
+						
+						$(document).on('click','.addEntityBtn2',function(){
+							var form = $('.addform2');
+							form[0].reset();
+						    form.find(".flow_id").val("").removeAttr("disabled");
+						    if(aData.id==1) {
+						    	$("#flow_id").val(1);
+						    } else if(aData.id==2) {
+						    	$("#flow_id").val(2);
+						    }
+						    /* 	form.find(".status").val("").removeAttr("disabled"); */
+							form.find(".name").val("").removeAttr("disabled");
+							$('#entityModal2 .modal-title').html("流程节点添加");
+							$('#entityModal2').modal('show');
+						});
+						
+						$(document).on('click','#account_table2 .person',function(){
+							aData = $("#account_table2").DataTable().row($(this).parents("tr")).data();//获取id
+							$("#likeUserTables").dataTable(
+								{
+									serverSide : false, //分页，取数据等等的都放到服务端去
+									processing : true, //载入数据的时候是否显示“载入中”
+									pageLength : 10, //首次加载的数据条数
+									ordering : false, //排序操作
+									"bLengthChange" : false,
+									"bPaginate" : true, //翻页功能
+									"bFilter" : true,
+									"bDeferRender" : true,
+									destroy: true,
+									ajax : {//类似jquery的ajax参数，基本都可以用。
+										type : "post",//后台指定了方式，默认get，外加datatable默认构造的参数很长，有可能超过get的最大长度。
+										url : "/ejwms/flowNode/selectByFlowNode?id=" + aData.id,
+										dataType : "json",
+										dataSrc : "data",//默认data，也可以写其他的，格式化table的时候取里面的数据
+										data : function(d) {//d 是原始的发送给服务器的数据，默认很长。
+											var p = {};
+											p.deptTypeNo = 0;
+											p.type=0;
+											return p;
+										},
+										callback: function(){  
+									      	
+									    }
+									},
+									"aoColumnDefs" : [ {
+										sDefaultContent : '',
+										aTargets : [ '_all' ]
+									} ],
+									columns : [//对应上面thead里面的序列
+											{
+												data : "id",
+												"sClass" : "text-center"
+											},
+											{
+												data : "name",
+												"sClass" : "text-center"
+											},
+											{
+												data : function(e) {//这里给最后一列返回一个操作列表
+													//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+													 var sContent = '<button class="btn-primary delete" id="delUserBtn">删除</button>';
+													
+													return sContent; 
+												},
+												"sClass" : "text-center"
+											} ],
+									initComplete : function(setting, data) {
+										/* if(data.total!=null){
+											PageSpace.initPages(document.getElementById("page"), data.total, 10, pageEvent);
+										} */
+										$(document).on('click','.addEntityBtn3',function(){
+											var form = $('.addform3');
+											
+											$.ajax( {
+												type:"post",//不写此参数默认为get方式提交
+												async:false,   //设置为同步
+												url : "/ejwms/flowNode/selectAllUser.do",
+												data :'',//传递到后台的参数				
+												cache : false,
+												dataType : 'json',//后台返回前台的数据格式为json
+												success : function(data) {
+													var json = eval(data);
+													var $select = $('#user');  
+													$select.empty();
+													 $select.append('<option value="">--请选择--</option>'); 
+													for(var i=0, len = json.data.length;i<len;i++){  
+													/*  $select.append('<option id=u"'+json.data[i].id+'" value="'+json.data[i].id+'">'+json.data[i].name+'</option>');*/  
+													  $select.append('<option value='+json.data[i].id+'>'+json.data[i].name+'</option>'); 
+													} 
+													
+												}
+										});
+											
+											form[0].reset();
+											form.find(".name").val("");
+											$('#personModal').modal('hide');
+											$('#addpersonModal .modal-title').html("人员添加");
+											$('#addpersonModal').modal('show');
+										});
+									},
+									language : {
+										lengthMenu : '<select class="form-control input-xsmall">'
+												+ '<option value="5">5</option>'
+												+ '<option value="10">10</option>'
+												+ '<option value="20">20</option>'
+												+ '<option value="30">30</option>'
+												+ '<option value="40">40</option>'
+												+ '<option value="50">50</option>'
+												+ '</select>条记录',//左上角的分页大小显示。
+										processing : "载入中",//处理页面数据的时候的显示
+										paginate : {//分页的样式文本内容。
+											previous : "上一页",
+											next : "下一页",
+											first : "第一页",
+											last : "最后一页"
+										},
+										search : "按姓名查找      ",
+										zeroRecords : "没有内容",//table tbody内容为空时，tbody的内容。
+										//下面三者构成了总体的左下角的内容。
+										info : "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+										infoEmpty : "0条记录",//筛选为空时左下角的显示。
+										infoFiltered : ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+									}
+								}
+							);
+							$('#personModal .modal-title').html("人员列表");
+							$('#personModal').modal('show');
+						});
+				},
+				language : {
+					lengthMenu : '<select class="form-control input-xsmall">'
+							+ '<option value="5">5</option>'
+							+ '<option value="10">10</option>'
+							+ '<option value="20">20</option>'
+							+ '<option value="30">30</option>'
+							+ '<option value="40">40</option>'
+							+ '<option value="50">50</option>'
+							+ '</select>条记录',//左上角的分页大小显示。
+					processing : "载入中",//处理页面数据的时候的显示
+					paginate : {//分页的样式文本内容。
+						previous : "上一页",
+						next : "下一页",
+						first : "第一页",
+						last : "最后一页"
+					},
+					search : "关键字查询      ",
+					zeroRecords : "没有内容",//table tbody内容为空时，tbody的内容。
+					//下面三者构成了总体的左下角的内容。
+					info : "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+					infoEmpty : "0条记录",//筛选为空时左下角的显示。
+					infoFiltered : ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+				}
+			}
+		);
+	});
+	
+	//修改设备
+	$(document).on('click','#account_table .modify',function(){//修改方案
+		var form = $('.addform');
+		form[0].reset();
+		form.validate().resetForm();
+		aData = $("#account_table").DataTable().row($(this).parents("tr")).data();
+		form.find(".flow_id").val(aData.id).attr("disabled", "disabled");
+		form.find(".name").val(aData.name);
+		form.find(".status").val(aData.status);
+		$('#entityModal .modal-title').html("流程配置");
+		$('#entityModal').modal('show');
+		return false;
+	});
+	
+	//转至新增
+	$(document).on('click','.addEntityBtn',function(){
+		var form = $('.addform');
+		form[0].reset();
+		form.find(".flow_id").val("").removeAttr("disabled");
+		/* form.find(".status").val("").removeAttr("disabled");*/
+		form.find(".name").val("").removeAttr("disabled");
+		$('#entityModal .modal-title').html("流程配置添加");
+		$('#entityModal').modal('show');
+	});
+
+	//新增提交（左）
+	$("#param_summit1").click(function () {
+		if($(".addform").valid()){
+			$.ajaxFileUpload( {
+				url : "/ejwms/flow/save.do",//请求的uri
+				type:"POST",//不写此参数默认为get方式提交
+					async:false,   //设置为同步
+					secureuri : false,//安全协议  
+					dataType : 'text',
+					fileElementId:'uploadImg',
+					data : {
+						type:$('#addType').val()
+					},//传递到后台的参数				
+					success : function(data) {
+						if(data=='true'){
+							$('.addform')[0].reset();
+							BootstrapDialog.alert("已添加");
+							$("#account_table").dataTable().fnReloadAjax();
+						}
+				},error: function () {
+					BootstrapDialog.alert('系统出现异常，请稍微再试!');
+				}}); 
+			}
+	});
+
+	//新增提交（右）
+	$("#param_summit2").click(function () {
+		if($(".addform").valid()){
+			$.ajaxFileUpload( {
+				url : "/ejwms/flowNode/save.do", //请求的uri
+				type:"POST",//不写此参数默认为get方式提交
+					async:false,   //设置为同步
+					secureuri : false,//安全协议  
+					dataType : 'text',
+					fileElementId:'uploadImg',
+					data : {
+						id:$('#node_id').val(),
+				/* 		index:$('#flow_node_index').val(),*/
+						name:$('#node_name').val(),
+						flowId:$('#flow_id').val()
+					},//传递到后台的参数				
+					success : function(data) {
+						if(data=='true'){
+							$('.addform')[0].reset();
+							BootstrapDialog.alert("操作成功!");
+							$("#account_table2").dataTable().fnReloadAjax();
+						}
+				},error: function () {
+					BootstrapDialog.alert('系统出现异常，请稍微再试!');
+				}}); 
+			}
+	});
+
+	//人员提交
+	$("#param_summit3").click(function () {
+		if($(".addform").valid()){
+			$.ajaxFileUpload( {
+				url : "/ejwms/flowNode/saveUser.do", //请求的uri
+				type:"POST",//不写此参数默认为get方式提交
+					async:false,   //设置为同步
+					secureuri : false,//安全协议  
+					dataType : 'text',
+					fileElementId:'uploadImg',
+					data : {
+						saveuserid:$('#user').val(),
+						flowNodeId:$('#node_id').val()
+					},//传递到后台的参数				
+					success : function(data) {
+						if(data=='true'){
+							$('.addform')[0].reset();
+							BootstrapDialog.alert("操作成功!");
+							$("#likeUserTables").dataTable().fnReloadAjax();
+						}
+				},error: function () {
+					BootstrapDialog.alert('系统出现异常，请稍微再试!');
+				}}); 
+			}
+	});
+
+	//删除（左）
+	$(document).on('click','#delBtn1',function(){
+		if (confirm("你确定要删除吗?"))  {  
+			aData = $("#account_table").DataTable().row($(this).parents("tr")).data();
+			$.ajax( {
+				type:"post",//不写此参数默认为get方式提交
+				async:false,   //设置为同步
+				url : "/ejwms/flow/delete.do?id=" + aData.id,//请求的uri
+				data : {id:aData.id},//传递到后台的参数				
+				cache : false,
+				dataType : 'json',//后台返回前台的数据格式为json
+				success : function(data) {
+					if(data){
+						BootstrapDialog.alert("删除成功!");
+						$('.addform')[0].reset();
+						$("#account_table").dataTable().fnReloadAjax();
+					}else{
+						BootstrapDialog.alert('该科目已发布办事指南，暂不能删除!');
+					}
+			},error: function () {
+				BootstrapDialog.alert('系统出现异常，请稍微再试!');
+			}}); 
+		}
+	});
+	
+	//删除(右)
+	$(document).on('click','#delBtn2',function(){
+		if (confirm("你确定要删除吗?"))  {  
+			aData = $("#account_table2").DataTable().row($(this).parents("tr")).data();
+			$.ajax( {
+				type:"post",//不写此参数默认为get方式提交
+				async:false,   //设置为同步
+				url : "/ejwms/flowNode/delete.do?id=" + aData.id,//请求的uri
+				data : {id:aData.id},//传递到后台的参数				
+				cache : false,
+				dataType : 'json',//后台返回前台的数据格式为json
+				success : function(data) {
+					if(data){
+						BootstrapDialog.alert("删除成功!");
+						$('.addform')[0].reset();
+						$("#account_table2").dataTable().fnReloadAjax();
+					}else{
+						BootstrapDialog.alert('只能删除最后一个流程');
+					}
+			},error: function () {
+				BootstrapDialog.alert('系统出现异常，请稍微再试!');
+			}}); 
+		}
+	});
+	
+	//删除人员
+	$(document).on('click','#delUserBtn',function(){
+		if (confirm("你确定要删除吗?"))  {  
+			aData = $("#likeUserTables").DataTable().row($(this).parents("tr")).data();
+			$.ajax( {
+				type:"post",//不写此参数默认为get方式提交
+				async:false,   //设置为同步
+				url : "/ejwms/flowNode/deleteUser.do?id=" + aData.id,//请求的uri
+				data : {id:aData.id},//传递到后台的参数				
+				cache : false,
+				dataType : 'json',//后台返回前台的数据格式为json
+				success : function(data) {
+					if(data){
+						BootstrapDialog.alert("删除成功!");
+						$('.addform')[0].reset();
+						$("#account_table2").dataTable().fnReloadAjax();
+					}else{
+						BootstrapDialog.alert('该科目已发布办事指南，暂不能删除!');
+					}
+			},error: function () {
+				BootstrapDialog.alert('系统出现异常，请稍微再试!');
+			}}); 
+		}
+	});
+
+	//添加验证
+	$(".addform").validate({  
+		errorElement: 'em', 
+		errorClass: 'help-block',
+		focusInvalid: false,   
+		rules:{
+			"name":{
+				required:true,
+				maxlength:20
+			}
+		},
+		messages:{
+			"name":{
+				required:"必填",
+				maxlength:"不超过20位"
+			}
+		}       
+  });
+});
+</script>
+
+
+</html>

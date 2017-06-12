@@ -1,0 +1,789 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+   	<title>组织结构</title>
+   	<%@ include file="../base/taglib.jsp"%>
+   	<%@ include file="../base/importCss.jsp"%>
+
+   <style type="text/css">
+   .help-block{
+     color:red;
+     float: left;
+     position: relative;
+    }
+   .jstree-organize-icon {
+    background-image: url(../images/organize.png) !important;
+}
+#Content-Left{
+   width: 350px;
+   margin: 5px 5px 5px 20px;/*设置元素跟其他元素的距离为20像素*/
+   float:left;/*设置浮动，实现多列效果，div+Css布局中很重要的*/
+   
+}
+#Content-Main{
+    width: 890px;
+    margin: 0px 5px 5px 5px;/*设置元素跟其他元素的距离为20像素*/
+    float:left;/*设置浮动，实现多列效果，div+Css布局中很重要的*/
+}
+ .display{
+   display:block;
+ }
+   </style>
+   	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+   	<link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css" />
+   	<%@ include file="../base/importJs.jsp"%>
+   	<link rel="stylesheet" type="text/css" href="<c:url value='/css/style.min.css'/>" />
+   	<script type="text/javascript" src="<c:url value='/js/jstree.min.js'/>"></script>
+   	<script type="text/javascript" src="<c:url value='/js/common.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/js/page.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/js/deptinfo.js'/>"></script>
+    <script src="http://webapi.amap.com/maps?v=1.3&key=719a4823ac1230f35bb05aa020617e55"></script>
+<script type="text/javascript" src="<c:url value='/js/ajaxfileupload.js'/>"></script>
+   	<!-- END PAGE LEVEL SCRIPTS -->
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+<body>
+<ul class="page-breadcrumb breadcrumb">
+                  <li>
+                     <i class="icon-cog"></i>组织架构
+                  </li>
+                  <li>组织管理</li>
+               </ul>
+<div class="panel panel-info" style="position: relative;">
+
+   	 	<div class="panel-heading" style='overflow: hidden;'>
+							组织管理列表
+      <button class="btn btn-primary add"  style="float:right; right: 15px; top: 12px;">添加</button>
+   	</div>
+   	<div class="panel-body">
+   		<div class="col-md-3" style="overflow: scroll; height: 500px;">
+				<div id="tree_part"></div>
+   		
+   		
+   		</div>
+	   	<div class="col-md-9">
+	   		 <table id="account_table" class="table table-bordered table-striped table-hover">
+	            <thead>
+	                <tr style="background: #F5F5F5;">
+	                  <th class="text-center" style="background: #3499db;color: #ffffff;">序号</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">组织名称</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;width:20%"">地址</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">联系方式</th>
+	                    <th class="text-left" style="background: #3499db;color: #ffffff;width:30%">描述</th>
+	                    <th class="text-center" style="background: #3499db;color: #ffffff;">操作</th>
+	                </tr>
+	            </thead>
+	        </table>
+        </div>
+   	</div>
+</div>
+
+<!-- 管理页面 -->
+<div class="modal fade" id="entityModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog" style="width: 1300px;">
+      <div class="modal-content" style="height: 650px;">
+         <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h4 class="modal-title" id="entityLabel"></h4>
+		 </div>
+         <div>
+         <div id="Content-Left">
+            <form class="addtable addform">
+						<input  type="hidden" name="id" id="id" />
+						<div class="form-group">
+							<div class="input-group" style="width:100%;">
+								<label class="input-group-addon" style="width: 100px;">组织名称</label>
+								<input class="_account form-control" name="name" id="name"
+									style="width: 100%;" />
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="input-group" style="width: 100%;">
+								<label class="input-group-addon" style="width: 100px;">联系方式</label><input
+									class="_name form-control" name="cellphone" id="cellphone"
+									style="width: 100%;" />
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="input-group" style="width: 100%;">
+								<label class="input-group-addon" style="width: 100px;">地址</label><input
+									class="_name form-control" name="addr" id="addr"
+									style="width: 100%;" />
+							</div>
+						</div>
+						<div class="form-group">
+						  <div class="input-group" style="width: 100%;">
+							<label class="input-group-addon" style="width: 100px;">图片</label>
+							<img alt="" src="" width=200 height=100 id="communityImg" class="hidden">
+							<input type="file" id="uploadImg" class="form-control" name="uploadImg">
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<div class="input-group" style="width: 100%;">
+								<label class="input-group-addon" style="width: 100px;">上级组织</label>
+								<select class="chooserole form-control " name="parentid" id="parentid"
+									style="width: 100%;">
+								</select>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<div class="input-group" style="width: 100%;">
+								<label class="input-group-addon" style="width: 100px;">状态</label>
+								<select class="chooserole form-control " name="status" id="status"
+									style="width: 100%;">
+									<option value="1">可用</option>
+									<option value="0">不可用</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="input-group" style="width:100%;">
+								<label class="input-group-addon" style="width: 100px;">描述</label>
+								<div>
+									<textarea class="form-control" rows="4"
+										placeholder="内容不超过200位(汉字占2位)" id="description" name="description"
+										style="width: 100%;"></textarea>
+								</div>
+							</div>
+						</div>
+
+					</form>
+				<div style="float:right;" id="btnSet">
+				    <button type="button" class="btn btn-primary addchild" id="param_summit" >
+		                                                    保存
+		            </button>
+				    <button type="button" class="btn btn-default"  data-dismiss="modal" onclick="javascript:$('.addform').validate().resetForm();$('.addform')[0].reset();">关闭
+		            </button>
+		            
+				</div>
+         </div>
+         <div id="Content-Main">
+                 <div class="panel-heading" id="mapBtn">
+                                                                                 组织地图定位
+						<button class="btn-success pull-right updateLocation setLocation" id="updateLocation">设置组织位置</button>
+						<div class="pull-right">&nbsp;&nbsp;&nbsp;</div>
+						<button class="btn-success pull-right updateArea setLocation" id="updateArea">设置组织区域</button>
+						<button class="btn-info pull-right hidden showLocation" id="cancelLocation">取消</button>
+						<div class="pull-right">&nbsp;&nbsp;&nbsp;</div>
+						<button class="btn-primary pull-right hidden showLocation" id="saveLocation">保存</button>
+						<button class="btn-info pull-right hidden showArea" id="cancelArea">取消</button>
+						<div class="pull-right">&nbsp;&nbsp;&nbsp;</div>
+						<button class="btn-primary pull-right hidden showArea" id="saveArea">保存</button>
+					</div>
+					<div class="panel-body" style="position: fixed;width: 880px;height: 520px;">
+						<div id="mapContainer"></div>
+					</div>
+         </div>
+					
+					
+					
+				</div>
+        
+          </div>
+      </div>
+      </div>
+      
+</body>
+<script type="text/javascript">
+var bData,json;
+var polygon;
+$(function() {
+	 
+ 	$('#tree_part').jstree({
+		'core' : {
+			"themes" : { "stripes" : true },
+			'data' : {
+				"url" : "/ejwms/organization/communityTree.do",
+				"dataType" : "json",
+				"async": true, 
+				"data":function(node){
+					 return {"id" : 0};
+		        }
+			}
+		}
+	}).on("select_node.jstree", function(e, data){
+		query(data.node.id);
+	}).on("open_node.jstree", function(e, data) {
+			//异步加载子节点
+			/* console.log(data);
+			alert(data.node.id); 
+			 $.getJSON('/ejwms/organization/communityTreeEx.do', {'id' : data.node.id}, function(data) {  
+			    $.each(data, function(entryIndex, entry) {  
+			       // tree_obj.create(entry, node, entryIndex + 1);  
+			       alert(1);
+			    });  
+			}); */
+		
+		}).on("loaded.jstree", function() {
+					$('#tree_part').jstree("open_all");
+		});
+
+     
+		//我的门店table列表
+		$("#account_table")
+				.dataTable(
+						{
+							serverSide : false, //分页，取数据等等的都放到服务端去
+							processing : true, //载入数据的时候是否显示“载入中”
+							pageLength : 10, //首次加载的数据条数
+							ordering : false, //排序操作
+							"bLengthChange" : false,
+							"bPaginate" : true, //翻页功能
+							"bFilter" : true,
+							"bDeferRender" : true,
+							ajax : {//类似jquery的ajax参数，基本都可以用。
+								type : "post",//后台指定了方式，默认get，外加datatable默认构造的参数很长，有可能超过get的最大长度。
+								url : "/ejwms/organization/queryCommunity.do",
+								dataType : "json",
+								dataSrc : "data",//默认data，也可以写其他的，格式化table的时候取里面的数据
+								data : function(d) {//d 是原始的发送给服务器的数据，默认很长。
+									var p = {};
+									p.kid = 0;
+									return p;
+								},
+							},
+							"aoColumnDefs" : [ {
+								sDefaultContent : '',
+								aTargets : [ '_all' ]
+							} ],
+							columns : [//对应上面thead里面的序列
+									{
+										data : "xh",
+										"sClass" : "text-center"
+									},
+									{
+										data : "name",
+										"sClass" : "text-center"
+									},
+									{
+										data : "addr",
+										"sClass" : "text-center"
+									},
+									{
+										data : "cellphone",
+										"sClass" : "text-center"
+									},
+									{
+										data : "description",
+										"sClass" : "text-center"
+									},
+									{
+										data : function(e) {//这里给最后一列返回一个操作列表
+											//e是得到的json数组中的一个item ，可以用于控制标签的属性。
+											var sContent = '<button class="btn btn-primary modify">修改</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-primary delete" >删除</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-primary view" >查看</button>&nbsp;&nbsp;&nbsp;';
+											// sContent+='&nbsp;&nbsp;&nbsp;<button class="btn-primary ondetail" data-toggle="modal" data-target="#myModal2" data-backdrop="false">详情</button>';
+											return sContent;
+										},
+										"sClass" : "text-center"
+									} ],
+							initComplete : function(setting, data) {
+								/* if(data.total!=null){
+									PageSpace.initPages(document.getElementById("page"), data.total, 10, pageEvent);
+								} */
+							},
+							language : {
+								lengthMenu : '<select class="form-control input-xsmall">'
+										+ '<option value="5">5</option>'
+										+ '<option value="10">10</option>'
+										+ '<option value="20">20</option>'
+										+ '<option value="30">30</option>'
+										+ '<option value="40">40</option>'
+										+ '<option value="50">50</option>'
+										+ '</select>条记录',//左上角的分页大小显示。
+								processing : "载入中",//处理页面数据的时候的显示
+								paginate : {//分页的样式文本内容。
+									previous : "上一页",
+									next : "下一页",
+									first : "第一页",
+									last : "最后一页"
+								},
+								search : "关键字查询      ",
+								zeroRecords : "没有内容",//table tbody内容为空时，tbody的内容。
+								//下面三者构成了总体的左下角的内容。
+								info : "共_PAGES_页     显示_START_ -  _END_条",//左下角的信息显示，大写的词为关键字。
+								infoEmpty : "0条记录",//筛选为空时左下角的显示。
+								infoFiltered : ""//筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+							}
+						});
+
+		$.ajax({
+			type : "post",//不写此参数默认为get方式提交
+			async : false, //设置为同步
+			url : "/ejwms/organization/getCommunityList.do",
+			data : '',//传递到后台的参数				
+			cache : false,
+			dataType : 'json',//后台返回前台的数据格式为json
+			success : function(data) {
+				json = eval(data);
+			}
+		});
+
+	});
+
+	//查询
+	function query(nodeid) {
+		$("#account_table").dataTable().fnClearTable();
+		$.ajax({
+			type : "post",//不写此参数默认为get方式提交
+			async : false, //设置为同步
+			url : "/ejwms/organization/queryCommunity.do?kid=" + nodeid,//请求的uri
+			data : '',//传递到后台的参数				
+			cache : false,
+			dataType : 'json',//后台返回前台的数据格式为json
+			success : function(data) {
+				$("#account_table").dataTable().fnAddData(data.data, true);
+			}
+		});
+
+	};
+
+	/*新增*/
+	$(document).on(
+			'click',
+			'.add',
+			function() {
+				$('.addform')[0].reset();
+				$('.addform').validate().resetForm();
+
+				var $select = $('#parentid');
+				$select.empty();
+				$select.append('<option value="">--请选择--</option>');
+				$select.append('<option value="0">根结点</option>');
+				for (var i = 0, len = json.data.length; i < len; i++) {
+					$select.append('<option value="'+json.data[i].id+'">'
+							+ json.data[i].name + '</option>');
+				}
+				$('#entityLabel').html("组织添加");
+				$('#entityModal').modal('show');
+				$('#id').val(0);
+				$('#communityImg').addClass("hidden");
+
+				/*  $.ajax( {
+						type:"post",//不写此参数默认为get方式提交
+						async:false,   //设置为同步
+						url : "/ejwms/organization/getCommunityList.do",
+						data :'',//传递到后台的参数				
+						cache : false,
+						dataType : 'json',//后台返回前台的数据格式为json
+						success : function(data) {
+							var json = eval(data);
+							var $select = $('#parentid'); 
+							$select.empty();
+							$select.append('<option value="">--请选择--</option>'); 
+							for(var i=0, len = json.data.length;i<len;i++){  
+							  $select.append('<option value="'+json.data[i].id+'">'+json.data[i].name+'</option>');  
+							} 
+							$('#entityLabel').html("组织添加");
+							$('#entityModal').modal('show');
+							$('#id').val(0);
+							$('#communityImg').addClass("hidden");
+						}
+				}); */
+				if ($('#btnSet').hasClass("hidden")) {
+					$('#btnSet').removeClass("hidden");
+					$('#mapBtn').removeClass("hidden");
+					$('#uploadImg').removeClass("hidden");
+				}
+				communityLocation = "114.31995,30.647734";
+				communityArea = null;
+
+				map = null;
+				polygon = null;
+				map = new AMap.Map('mapContainer');
+				map.plugin([ "AMap.ToolBar", "AMap.OverView", "AMap.Scale",
+						"AMap.MapType", "AMap.PolyEditor", "AMap.MouseTool" ],
+						function() {
+							//加载工具条
+							tool = new AMap.ToolBar({
+								direction : false,//隐藏方向导航
+								ruler : false,//隐藏视野级别控制尺
+								autoPosition : false
+							//禁止自动定位
+							});
+							map.addControl(tool);
+							//加载鹰眼
+							view = new AMap.OverView();
+							map.addControl(view);
+							//加载比例尺
+							scale = new AMap.Scale();
+							map.addControl(scale);
+							var type = new AMap.MapType({
+								defaultType : 0
+							});
+							map.addControl(type);
+						});
+
+				map.clearMap();
+				if (communityLocation != null && communityLocation != ""
+						&& communityLocation != "null") {
+					map.setZoomAndCenter(16, communityLocation.split(","));
+					marker = new AMap.Marker({
+						map : map,
+						position : communityLocation.split(",")
+					});
+				}
+
+			});
+
+	/*修改*/
+	$(document).on(
+			'click',
+			'.modify',
+			function() {
+				/* 	 $.ajax( {
+				 type:"post",//不写此参数默认为get方式提交
+				 async:false,   //设置为同步
+				 url : "/ejwms/organization/getCommunityList.do",
+				 data :'',//传递到后台的参数				
+				 cache : false,
+				 dataType : 'json',//后台返回前台的数据格式为json
+				 success : function(data) {
+				 var json = eval(data);
+				 var $select = $('#parentid');  
+				 $select.empty();
+				 $select.append('<option value="">--请选择--</option>'); 
+				 for(var i=0, len = json.data.length;i<len;i++){  
+				 $select.append('<option value="'+json.data[i].id+'">'+json.data[i].name+'</option>');  
+				 } 
+				
+				 }
+				 }); */
+
+				var $select = $('#parentid');
+				$select.empty();
+				$select.append('<option value="">--请选择--</option>');
+				$select.append('<option value="0">根结点</option>');
+				for (var i = 0, len = json.data.length; i < len; i++) {
+					$select.append('<option value="'+json.data[i].id+'">'
+							+ json.data[i].name + '</option>');
+				}
+
+				$('#entityLabel').html("组织修改");
+				/* $('.addform')[0].reset();
+				$('.addform').validate().resetForm(); */
+				aData = $("#account_table").DataTable().row(
+						$(this).parents("tr")).data();
+				$('#name').val(aData.name);
+				$('#id').val(aData.id);
+				$('#cellphone').val(aData.cellphone);
+				$('#addr').val(aData.addr);
+				$('#description').val(aData.description);
+				$('#status').val(aData.status);
+				$('#parentid').val(aData.parentid);
+				$('#entityModal').modal('show');
+				$('#communityImg').attr("src", aData.img);
+				$('#communityImg').removeClass("hidden");
+				if ($('#btnSet').hasClass("hidden")) {
+					$('#btnSet').removeClass("hidden");
+					$('#mapBtn').removeClass("hidden");
+					$('#uploadImg').removeClass("hidden");
+				}
+				communityLocation = null;
+				communityArea = null;
+				communityLocation = aData.location;
+				communityArea = aData.area;
+
+				$('.setLocation').removeClass("hidden");
+				$('.setLocation').addClass("show");
+				$('.showArea').removeClass("show");
+				$('.showArea').addClass("hidden");
+				map = null;
+				polygon = null;
+				map = new AMap.Map('mapContainer');
+				map.plugin([ "AMap.ToolBar", "AMap.OverView", "AMap.Scale",
+						"AMap.MapType", "AMap.PolyEditor", "AMap.MouseTool" ],
+						function() {
+							//加载工具条
+							tool = new AMap.ToolBar({
+								direction : false,//隐藏方向导航
+								ruler : false,//隐藏视野级别控制尺
+								autoPosition : false
+							//禁止自动定位
+							});
+							map.addControl(tool);
+							//加载鹰眼
+							view = new AMap.OverView();
+							map.addControl(view);
+							//加载比例尺
+							scale = new AMap.Scale();
+							map.addControl(scale);
+							var type = new AMap.MapType({
+								defaultType : 0
+							});
+							map.addControl(type);
+						});
+				if (communityArea != null && communityArea != ""
+						&& communityArea != "null") {
+					var polygonArr = eval("(" + communityArea + ")");
+					polygon = new AMap.Polygon({
+						path : polygonArr, //设置多边形边界路径 
+						strokeColor : "#FF33FF", //线颜色
+						strokeOpacity : 1, //线透明度
+						strokeWeight : 2, //线宽
+						fillColor : "#1791fc", //填充色
+						fillOpacity : 0.15
+					//填充透明度
+					});
+					polygon.setMap(map);
+				} else {
+					map.clearMap();
+				}
+
+				if (communityLocation != null && communityLocation != ""
+						&& communityLocation != "null") {
+					if (marker) {
+						marker = null;
+					}
+					map.setZoomAndCenter(16, communityLocation.split(","));
+					marker = new AMap.Marker({
+						map : map,
+						position : communityLocation.split(",")
+					});
+				} else {
+					if (marker) {
+						marker = null;
+					}
+					communityLocation = "114.31995,30.647734";
+					map.setZoomAndCenter(16, communityLocation.split(","));
+					marker = new AMap.Marker({
+						map : map,
+						position : communityLocation.split(",")
+					});
+				}
+
+			});
+
+	/*查看*/
+	$(document).on(
+			'click',
+			'.view',
+			function() {
+				var $select = $('#parentid');
+				$select.empty();
+				$select.append('<option value="">--请选择--</option>');
+				for (var i = 0, len = json.data.length; i < len; i++) {
+					$select.append('<option value="'+json.data[i].id+'">'
+							+ json.data[i].name + '</option>');
+				}
+
+				$('#entityLabel').html("查看组织详情");
+				aData = $("#account_table").DataTable().row(
+						$(this).parents("tr")).data();
+				$('#name').val(aData.name);
+				$('#id').val(aData.id);
+				$('#cellphone').val(aData.cellphone);
+				$('#addr').val(aData.addr);
+				$('#description').val(aData.description);
+				$('#status').val(aData.status);
+				$('#parentid').val(aData.parentid);
+				$('#entityModal').modal('show');
+				$('#communityImg').attr("src", aData.img);
+				$('#communityImg').removeClass("hidden");
+				$('#btnSet').addClass("hidden");
+				$('#mapBtn').addClass("hidden");
+				$('#uploadImg').addClass("hidden");
+				communityLocation = null;
+				communityArea = null;
+				communityLocation = aData.location;
+				communityArea = aData.area;
+
+				$('.setLocation').removeClass("hidden");
+				$('.setLocation').addClass("show");
+				$('.showArea').removeClass("show");
+				$('.showArea').addClass("hidden");
+
+				map = null;
+				polygon = null;
+				map = new AMap.Map('mapContainer');
+				map.plugin([ "AMap.ToolBar", "AMap.OverView", "AMap.Scale",
+						"AMap.MapType", "AMap.PolyEditor", "AMap.MouseTool" ],
+						function() {
+							//加载工具条
+							tool = new AMap.ToolBar({
+								direction : false,//隐藏方向导航
+								ruler : false,//隐藏视野级别控制尺
+								autoPosition : false
+							//禁止自动定位
+							});
+							map.addControl(tool);
+							//加载鹰眼
+							view = new AMap.OverView();
+							map.addControl(view);
+							//加载比例尺
+							scale = new AMap.Scale();
+							map.addControl(scale);
+							var type = new AMap.MapType({
+								defaultType : 0
+							});
+							map.addControl(type);
+						});
+				if (communityArea != null && communityArea != ""
+						&& communityArea != "null") {
+					var polygonArr = eval("(" + communityArea + ")");
+					polygon = new AMap.Polygon({
+						path : polygonArr, //设置多边形边界路径 
+						strokeColor : "#FF33FF", //线颜色
+						strokeOpacity : 1, //线透明度
+						strokeWeight : 2, //线宽
+						fillColor : "#1791fc", //填充色
+						fillOpacity : 0.15
+					//填充透明度
+					});
+					polygon.setMap(map);
+				} else {
+					map.clearMap();
+				}
+				if (marker) {
+					marker = null;
+				}
+				if (communityLocation != null && communityLocation != ""
+						&& communityLocation != "null") {
+					map.setZoomAndCenter(16, communityLocation.split(","));
+					marker = new AMap.Marker({
+						map : map,
+						position : communityLocation.split(",")
+					});
+				} else {
+					communityLocation = "114.31995,30.647734";
+					map.setZoomAndCenter(16, communityLocation.split(","));
+					marker = new AMap.Marker({
+						map : map,
+						position : communityLocation.split(",")
+					});
+				}
+
+			});
+
+	/*提交*/
+	$("#param_summit").click(
+			function() {
+				if ($(".addform").valid()) {
+					var szFileName = $("#uploadImg").val();
+					if (szFileName != null && szFileName != "") {
+						szFileName = szFileName.replace(/(^\s*)|(\s*$)/g, "");
+						var hzm = szFileName.substr(szFileName.length - 3)
+								.toLowerCase();
+						if (hzm != "jpg" && hzm != "png" && hzm != "bmp"
+								&& hzm != "jpeg") {
+							alert("请上传jpg,png,bmp,jpeg格式的图片!");
+							return false;
+						}
+					}
+
+					$.ajaxFileUpload({
+						url : "/ejwms/organization/saveDeptInfo.do",//请求的uri
+						type : "POST",//不写此参数默认为get方式提交
+						async : false, //设置为同步
+						secureuri : false,//安全协议  
+						dataType : 'text',
+						fileElementId : 'uploadImg',
+						/* data:{
+							    id:$("#id").val(),
+							    name:$("#name").val(),
+								communityDescription:$("#communityDescription").val(),
+								communityPW:$("#communityPW").val(),
+								address: $("#communityAddress").val()
+						},//传递到后台的参数	
+						 */
+						data : {
+							id : $('#id').val(),
+							name : $("#name").val(),
+							communityImg : $('#communityImg').attr("src"),
+							cellphone : $("#cellphone").val(),
+							addr : $('#addr').val(),
+							status : $("#status").val(),
+							description : $("#description").val(),
+							parentid : $("#parentid").val(),
+							location : communityLocation,
+							area : communityArea
+						},//传递到后台的参数				
+						success : function(data) {
+							if (data == 'true') {
+								$('.addform')[0].reset();
+								$('#entityModal').modal('hide');
+								$("#account_table").dataTable().fnReloadAjax();
+								$('#tree_part').jstree().refresh();
+								alert("操作成功!");
+							}
+						},
+						error : function() {
+							alert('系统出现异常，请稍微再试!');
+						}
+					});
+				}
+			});
+
+	//删除设备
+	$(document).on(
+			'click',
+			'.delete',
+			function() {
+				if (confirm("你确定要删除吗?")) {
+					aData = $("#account_table").DataTable().row(
+							$(this).parents("tr")).data();
+					$.ajax({
+						type : "post",//不写此参数默认为get方式提交
+						async : false, //设置为同步
+						url : "/ejwms/organization/deleteDeptInfo.do",//请求的uri
+						data : {
+							id : aData.id
+						},//传递到后台的参数				
+						cache : false,
+						dataType : 'json',//后台返回前台的数据格式为json
+						success : function(data) {
+							$("#account_table").dataTable().fnReloadAjax();
+							$('#tree_part').jstree().refresh();
+							alert("删除成功!");
+						},
+						error : function() {
+							alert('系统出现异常，请稍微再试!');
+						}
+					});
+				}
+			});
+
+	$(function() {
+		$(".addform").validate({
+			errorElement : 'em',
+			errorClass : 'help-block',
+			focusInvalid : false,
+			rules : {
+				"name" : {
+					required : true
+				},
+				"cellphone" : {
+					required : true,
+					phonecheck : true,
+					maxlength : 20
+				},
+				"parentid" : {
+					required : true
+				}
+			},
+			messages : {
+				"name" : {
+					required : "必填"
+				},
+				"cellphone" : {
+					required : "必填"
+				},
+				"parentid" : {
+					required : "必填"
+				}
+			}
+		});
+		jQuery.validator.addMethod("phonecheck", function(value, element) {
+			return this.optional(element)
+					|| /0\d{2,3}\d{5,9}|0\d{2,3}-\d{5,9}/.test(value)
+					|| /^1[3|4|5|8][0-9]\d{8}$/.test(value);
+		}, "联系电话格式不正确");
+
+	});
+</script>
+<!-- END BODY -->
+
+</html>

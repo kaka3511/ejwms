@@ -1,0 +1,177 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Insert title here</title>
+
+<%@ include file="../../base/taglib.jsp"%>
+<%@ include file="../../base/importCss.jsp"%>
+<%@ include file="../../base/importJs.jsp"%>
+
+</head>
+<body>
+	<ul class="page-breadcrumb breadcrumb">
+		<li><i class="icon-cog"></i>业务管理</li>
+		<li>游戏试题</li>
+	</ul>
+	<div class="panel panel-info">
+
+		<div class="panel-heading">
+
+			<form class="form-inline">
+				<div class="form-group">
+					<label>题目类型：</label> 
+					<select id="query_type" class="form-control">
+						<option value="">所有</option>
+						<option value="1">精神病预防与治疗</option>
+						<option value="2">安全防范知识问答</option>
+						<option value="3">消防知识问答</option>
+					</select> 
+					
+				</div>
+					<a class='btn btn-primary pull-right' href="<c:url value='/question/view/gamePaper?oper=add'/>">添加题目</a>
+			</form>
+			
+
+		</div>
+		<div class="panel-body">
+			<div>
+				<table id="jqGrid"></table>
+				<div id="jqGridPager"></div>
+			</div>
+		</div>
+	</div>
+	
+</body>
+
+<script type="text/javascript">
+	$(function() {
+		//存储页面到sessionStorage 
+		function assignCurrentQuestionGamePage(){
+			if(!sessionStorage.getItem("currentQuestionGamePage"))
+				return 1;
+			else 
+				return sessionStorage.getItem("currentQuestionGamePage");
+		}
+		var currentQuestionGamePage;
+		currentQuestionGamePage = assignCurrentQuestionGamePage();
+		$(window).resize(function(){
+			$("#jqGrid").setGridHeight($(window).height()-$('.panel-body').offset().top-80);
+		});
+		$("#jqGrid").jqGrid({
+			url : "<c:url value='/question/list?qbType=1'/>",
+			// we set the changes to be made at client side using predefined word clientArray
+			editurl : 'clientArray',
+			datatype : "json",
+			page : currentQuestionGamePage,
+			jsonReader : {
+				root : 'data',
+				repeatitems : false,
+			},
+			cmTemplate : {
+				align : 'center',
+				sortable : false
+			},
+			colModel : [ {
+				label : 'ID',
+				name : 'id',
+				key : true,
+				hidden : true,
+			}, {
+				label : '问题标题',
+				name : 'question',
+			},
+			/* {
+				label: '题库类型',
+			    name: 'questiontype',
+			    width:100,
+			    formatter:'select', 
+			    editoptions:{value:"1:游戏问题;2:健康评测"},
+			}, */
+			{
+				label : '题目类型',
+				name : 'type',
+				width : 100,
+				formatter : 'select',
+				editoptions : {
+					value : "1:精神病预防与治疗;2:安全防范知识问答;3:消防知识问答"
+				},
+
+			}, {
+				label : '操作',
+				name : 'operation',
+				width : 100,
+				editable : false,
+				search : false,
+				formatter : operFormat,
+				unformat : operUnFormat
+
+			} ],
+			gridComplete : function() {
+				$('td .del').off('click',del);
+				$('td .del').on('click',del);
+			},
+			loadonce : true,
+			viewrecords : true,
+			height:$(window).height()-$('.panel-body').offset().top-80,
+			autowidth : true,
+			rownumbers : true,
+			rownumWidth : 50,
+			rowNum : 10,
+			pager : "#jqGridPager"
+		});
+		function del(event) {
+			event.preventDefault();
+			if(confirm("确认删除该条记录吗？")){
+				var href = $(this).attr('href');
+				$.ajax({
+					url : href,
+					dataType : 'json',
+					type : 'get',
+					success : function(data, textStatus, jqXHR) {
+						alert("删除成功！");
+						$("#jqGrid").delRowData(data.data);
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						alert("删除失败,请稍后再试！");
+					}
+				});
+			};
+			
+		}
+		function operFormat(cellvalue, options, rowObject) {
+			var currentQuestionGamePage = $(this).jqGrid('getGridParam','page');
+			sessionStorage.setItem("currentQuestionGamePage", currentQuestionGamePage); 
+			return "<div><a class='btn btn-primary edit'  href='<c:url value='/question/view/gamePaper?oper=edit&id='/>"
+					+ rowObject.id
+					+ "'>修改</a>&nbsp;&nbsp;<a class='btn btn-primary del' href='<c:url value='/question/mgr/?qbType=1&oper=del&id='/>"
+					+ rowObject.id + "'>删除</a></div>";
+		}
+
+		function operUnFormat(cellvalue, options, cell) {
+			return "";
+		}
+		
+
+		  var f = { groupOp: "AND", rules: [] };
+	     $('#query_type').change(function(){
+	    	var self = this;
+	 		var value = self.value;
+	     	var grid = $('#jqGrid');
+	     	var field = "type";
+	     	var op ="cn";
+
+	     	filter(f,grid,field,op,value);
+	     	
+	     });
+	     
+		
+
+
+	});
+</script>
+</html>

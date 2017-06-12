@@ -1,0 +1,178 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Insert title here</title>
+
+<%@ include file="../base/taglib.jsp"%>
+<%@ include file="../base/importCss.jsp"%>
+<%@ include file="../base/importJs.jsp"%>
+
+</head>
+<body>
+	<ul class="page-breadcrumb breadcrumb">
+		<li><i class="icon-cog"></i>商品管理</li>
+		<li>积分兑换</li>
+	</ul>
+	<div class="panel panel-info">
+
+		<div class="panel-heading">
+			<form class='form-inline' action="">
+				<div class="form-group">
+					 <label>请输入现金券代码：</label>
+					<input class='form-control' type='text' id='query_code'>
+				</div>
+			</form>
+			
+			
+		</div>
+		<div class="panel-body">
+			<div >
+			    <table id="jqGrid"></table>
+			    <div id="jqGridPager"></div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+$(function() {
+	var currentGoodsExchange = getOneSessionStorageValue("currentGoodsExchange");
+	$(window).resize(function(){
+		$("#jqGrid").setGridHeight($(window).height()-$('.panel-body').offset().top-80);
+	});
+	$("#jqGrid").jqGrid({
+        url:"<c:url value='/exchange/list'/>",
+		// we set the changes to be made at client side using predefined word clientArray
+        editurl: 'clientArray',
+        datatype: "json",
+        page: currentGoodsExchange,
+        jsonReader:{
+        	root:'data',
+        	repeatitems: true,
+        },
+        cmTemplate:{
+        	align:'center',
+        	sortable:false
+        },
+        colModel: [
+            {
+				label: 'ID',
+                name: 'id',
+				key: true,
+				hidden:true,
+				search:false,
+            },
+            
+            {
+				label: '积分',
+                name: 'points',
+                search:false,
+                searchoptions:{
+                	sopt:['cn'],
+                }
+            },
+           
+            {
+				label: '兑换码',
+                name: 'code',
+            },
+            
+            {
+				label: '状态',
+                name: 'status',
+                formatter:"select",
+                editoptions:{value:"0:未领取;1:已领取"}
+            },
+           
+            
+            {
+				label: '操作',
+                name: 'operation',
+                editable: false,
+                search:false,
+                formatter:operFormat,
+                unformat:operUnFormat
+            
+            }
+        ],
+        gridComplete:function(){
+        	$('td .exchange').off("click",exchange);
+        	$('td .exchange').on("click",exchange);
+        },
+		loadonce: true,
+		viewrecords: true,
+        shrinkToFit :true,
+        height:$(window).height()-$('.panel-body').offset().top-80,
+        autowidth:true,
+        rownumbers:true,
+        rownumWidth:50,
+        rowNum: 10,
+        pager: "#jqGridPager"
+    });
+	sessionStorage.clear();
+	 /* $('#jqGrid').navGrid('#jqGridPager',{}
+		        ); */
+		        
+	function exchange(event){
+		event.preventDefault();
+		var href = $(this).attr('href');
+		$.ajax({
+			url:href,
+			dataType:'json',
+			type:'get',
+			success:function(data, textStatus, jqXHR){
+				alert("兑换成功！");
+				$('#btn_exchange_'+data.data).attr('disabled',true);
+				$('#btn_exchange_'+data.data).text("已兑换");
+			},
+			error:function( jqXHR, textStatus, errorThrown){
+				alert("兑换失败！");
+			}
+		});
+	}
+	function operFormat( cellvalue, options, rowObject ){
+		var currentGoodsExchange = $(this).jqGrid('getGridParam','page');
+		sessionStorage.setItem("currentGoodsExchange", currentGoodsExchange);
+			if(rowObject.status==0){
+				return "<div><a class='btn btn-primary exchange'  href='<c:url value='/exchange/update/'/>"+rowObject.id+"' id='btn_exchange_"+rowObject.id+"'>兑换</a></div>";
+			}else{
+				return "<div><a class='btn btn-primary exchange'  href='<c:url value='/exchange/update/'/>"+rowObject.id+"' id='btn_exchange_"+rowObject.id+"' disabled>已兑换</a></div>";
+			}
+       		
+		
+	}
+	
+	function operUnFormat( cellvalue, options, cell){
+		return "";
+	}
+	
+	
+	var f = { groupOp: "AND", rules: [] };
+    
+    var timer;
+    $('#query_code').keyup(function(){
+		var self = this;
+		var value = self.value;
+		var grid = $('#jqGrid');
+     	var field = "code";
+     	var op = "cn";
+     	
+		if(timer) { clearTimeout(timer); }
+		timer = setTimeout(function(){
+			//timer = null;
+			filter(f,grid,field,op,value);
+		},0);
+     	
+     }); 
+    
+});
+</script>
+</html>

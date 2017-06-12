@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="../base/taglib.jsp"%>
+<!-- BEGIN SIDEBAR -->
+<div class="page-sidebar navbar-collapse collapse" >
+   <!-- BEGIN SIDEBAR MENU -->        
+<ul class="page-sidebar-menu">
+   	<li>
+      	<!-- BEGIN SIDEBAR TOGGLER BUTTON -->
+     <div class="sidebar-toggler"></div>
+      	<div class="clearfix"></div>
+      	<!-- BEGIN SIDEBAR TOGGLER BUTTON -->
+   	</li>
+   
+   	<li class="start">
+   		 <a href="javascript:iframeHref('welcome')">
+	      <i class="icon-home-page"></i> 
+	      <span class="title">首&nbsp;&nbsp;&nbsp;&nbsp;页</span>
+	      </a>
+   	</li>
+   	<c:forEach var="menu" items="${menu}">
+   	   	<li class="">
+   	   	    <a href="javascript:;"><i class='${menu.menuImgCls}'></i>
+			  <span class="title">${menu.menuName}</span>
+			  <span class="arrow "></span>
+		    </a>
+   	   	
+   	    <c:if test="${!empty menu.children}">
+   	      <ul class="sub-menu">
+	   	     <c:forEach var="submenu" items="${menu.children}">
+	   	        <li><a href="javascript:iframeHref('${submenu.menuHref}')">${submenu.menuName}</a></li> 
+	   	     </c:forEach>
+   	      </ul>
+   	    </c:if>
+   	  </li>
+   	</c:forEach>
+   	
+   <li class="last">
+      <a href="javascript:if (confirm('你确定要退出吗?'))  { window.location.href='/ejwms/home/login'}">
+      <i class="icon-logout"></i> 
+      <span class="title">注销登录</span>
+      </a>
+   </li>
+</ul>
+<!-- END SIDEBAR MENU -->
+<!-- END SIDEBAR -->
+
+</div>

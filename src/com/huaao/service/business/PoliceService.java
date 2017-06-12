@@ -1,0 +1,174 @@
+/**
+ * 
+ */
+package com.huaao.service.business;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+
+import com.huaao.common.utilities.Page;
+import com.huaao.dao.base.BaseDao;
+import com.huaao.model.business.AuditRecord;
+
+
+/** 
+* @ClassName: PoliceService 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月4日 下午2:14:10 
+* 
+* 
+*/
+@Service
+public class PoliceService {
+
+	@Autowired
+	private BaseDao dao;
+	
+	public List queryWellcomeForList(int status,int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "select *,1 rtype from sps_d_register_apply  where  status = ? and communityid=?";
+		return dao.queryForList(sql, new Integer[]{status,communityid});
+	}
+	public List queryRegistApplyList(int communityid){
+		String sql = "select a.cuser,a.id apply_id,a.status,a.createtime,b.*,max(c.auditdate) audittime from sps_d_register_apply a left join sps_b_pupil_info b on a.pupilid = b.id  left join sps_d_audit_record c on a.id = c.applyid    where a.communityid = ? and b.id is not null group by a.id  order by a.createtime desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	public List queryAuditRecordForList(int applyId){
+		String sql = "select *from sps_d_audit_record  where applyid = ? order by id desc";
+		
+		List list = dao.queryForList(sql, new Integer[]{applyId});
+		return list;
+	}
+	
+	/** 
+	 * 
+	* @Title: updateRegisterApply 
+	* @Description: 更新登记申请的状态和当前审批人
+	* @param  status
+	* @param  audit  参数说明 
+	* @return int    返回类型 
+	* @throws 
+	*/
+	public int  updateRegisterApply(Integer newStatus,String audits,Integer id,Integer oldStatus){
+		String sql = "update sps_d_register_apply set status=? ,audits=? where id = ? and status =?";
+		
+		return dao.update(sql, new Object[]{newStatus,audits,id,oldStatus});
+	}
+	public SqlRowSet queryRegisterApplyWith(int applyId){
+		String sql = "select * from sps_d_register_apply  where id = ?";
+		
+		return dao.queryForRowSet(sql, new Integer[]{applyId});
+	}
+	//获取之前的审计记录
+	public Map queryPreAuditRecord(int applyId){
+		String sql = "select *from sps_d_audit_record  where applyid = ?";
+		
+		List list = dao.queryForList(sql, new Integer[]{applyId});
+		if(!list.isEmpty())return (Map)list.get(list.size()-1);
+		return null;
+	}
+
+	/** 
+	* @Title: insertAuditRecord 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param auditRecord  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void insertAuditRecord(AuditRecord auditRecord) {
+		// TODO Auto-generated method stub
+		String sql = "insert into sps_d_audit_record  (communityid, type, 	applyid, audit, status, auditdate, remark, preid) values (?,?,?,?,?,?,?,?)";
+		dao.saveOrUpdate(sql, new Object[]{auditRecord.getCommunityId(),auditRecord.getType(),auditRecord.getApplyId(),auditRecord.getAudit(),auditRecord.getStatus(),auditRecord.getAuditDate(),auditRecord.getRemark(),auditRecord.getPreId()});
+		
+	}
+	
+	public SqlRowSet queryPupilIWith(int pupilId){
+		String sql = "select * from sps_b_pupil_info  where id = ?";
+		
+		return dao.queryForRowSet(sql, new Integer[]{pupilId});
+	}
+	
+	public int updatePupil(String name,String head_img,String gender,String age,String idcard,String addr,String type,String illness,String id){
+		String sql = "update sps_b_pupil_info set name=?,head_img=?,gender=?,age=?,idcard=?,addr=?,type=?,illness=? where id = ?";
+		
+		return dao.update(sql, new Object[]{name,head_img,gender,age,idcard,addr,type,illness,id});
+	}
+	
+	/** 
+	* @Title: Z 
+	* @Description: TODO(根据 applyid 和type 的条件查询到这条记录) 
+	* @param @param auditRecord  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public List queryForRecordToid(int id,int type){
+		String sql="select jw.name,audit.audit,FROM_UNIXTIME(audit.auditdate, '%Y年%m月%d日')  as auditdate,audit.remark,audit.`status` from sps_d_audit_record audit LEFT JOIN jw_community jw on(jw.id=audit.communityid) where audit.applyid=? and audit.`type`=? ";
+		return dao.queryForList(sql,new Object[]{id,type});
+	}
+	/** 
+	* @Title: updatePupilImgs 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param imgs
+	* @param @param id  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public int updatePupilImgs(String imgs, String nums,String id) {
+		
+			String sql = "update sps_b_pupil_info set imgs=?,nums=? where id = ?";
+		
+		return dao.update(sql, new Object[]{imgs,nums,id});
+	}
+	
+	
+	public List<Map<String, Object>> queryToCommunityid(int communityid,String type_query,String status_query,String gender_query){
+		String sql="select DISTINCT pupil.name,case when pupil.gender=0 then '女' when pupil.gender=1 then '男'  end gender,pupil.idcard,pupil.addr,pupil.cellphone,pupil.nums,case  when pupil.type =0  then '精神障碍' when pupil.type=1 then '残疾智障' when pupil.type =3  then '涉恐涉稳' when pupil.type =4  then '吸毒致幻' when pupil.type =5  then '失独家庭' when pupil.type =6  then '孤寡独居' end as type,jwuser.`name` as jwname,jwuser.idcard as jwidcard,cure.workunit,jwuser.address as jwaddress,jwuser.cellphone as usercellphone  from  sps_b_pupil_info pupil LEFT JOIN sps_d_register_apply apply  on(apply.pupilid=pupil.id) LEFT JOIN sps_d_cure_apply cure on(cure.keeperid=apply.keeperid) LEFT JOIN jw_user jwuser on(apply.keeperid=jwuser.id) where apply.communityid="+ communityid;
+		if(!"-1".equals(type_query)){
+			sql+=" and pupil.type ="+type_query;
+		}
+		if(!"-1".equals(status_query)){
+			sql+=" and apply.status ="+status_query;
+		}
+		if(!"-1".equals(gender_query)){
+			sql+=" and pupil.gender ="+gender_query;
+		}
+		System.out.println(sql);
+		return dao.queryForList(sql);
+	}
+	
+	public List<Map<String, Object>> queryToCommunityidByKeyword(int communityid,String keyword,String type_query,String status_query,String gender_query){
+		String sql="select DISTINCT pupil.name,case when pupil.gender=0 then '女' when pupil.gender=1 then '男'  end gender,pupil.idcard,"
+				+ "pupil.addr,pupil.cellphone,pupil.nums,case  when pupil.type =0  then '精神障碍' when pupil.type=1 then '残疾智障' when "
+				+ "pupil.type =3  then '涉恐涉稳' when pupil.type =4  then '吸毒致幻' when pupil.type =5  then '失独家庭' when pupil.type =6  "
+				+ "then '孤寡独居' end as type,jwuser.`name` as jwname,jwuser.idcard as jwidcard,cure.workunit,jwuser.address as jwaddress,"
+				+ "jwuser.cellphone as usercellphone  from  sps_b_pupil_info pupil LEFT JOIN sps_d_register_apply apply  on(apply.pupilid=pupil.id)"
+				+ " LEFT JOIN sps_d_cure_apply cure on(cure.keeperid=apply.keeperid) LEFT JOIN jw_user jwuser on(apply.keeperid=jwuser.id) where"
+				+ " apply.communityid="+communityid+" and ( locate('"+keyword+"', pupil.addr)>0 or locate('"+keyword+"', pupil.age)>0 or locate('"+keyword+"', apply.cuser)>0 or locate('"+keyword+"', pupil.idcard)>0 or "
+				+ "locate('"+keyword+"', pupil.name)>0 )";
+		if(!"-1".equals(type_query)){
+			sql+=" and pupil.type ="+type_query;
+		}
+		if(!"-1".equals(status_query)){
+			sql+=" and apply.status ="+status_query;
+		}
+		if(!"-1".equals(gender_query)){
+			sql+=" and pupil.gender ="+gender_query;
+		}
+		System.out.println(sql);
+		return dao.queryForList(sql);
+	}
+	
+	public void queryForPage(Integer communityid, Page pager) {
+		StringBuffer sbf = new StringBuffer("select a.cuser,a.id apply_id,a.status,a.createtime,b.*,max(c.auditdate) audittime from sps_d_register_apply a left join sps_b_pupil_info b on a.pupilid = b.id  left join sps_d_audit_record c on a.id = c.applyid where a.communityid = " + communityid);
+		String additions = " group by a.id  order by a.createtime desc ";
+		pager.setCountSql(sbf.toString());
+		pager.setCountSqlConditions(additions);
+		dao.queryPageWithConditions(sbf.toString(), pager, additions);
+		
+	}
+}

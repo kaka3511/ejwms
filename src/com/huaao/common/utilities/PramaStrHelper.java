@@ -1,0 +1,63 @@
+package com.huaao.common.utilities;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang.StringUtils;
+
+public class PramaStrHelper {
+	public static ConcurrentHashMap<String,String> pramaStrMap = new ConcurrentHashMap<String , String>();
+	
+	public static boolean existPramaStrMap(String currentPramaStrFlag){
+	 for (Map.Entry<String, String> entry : PramaStrHelper.pramaStrMap.entrySet()) {  
+		 if(StringUtils.equals(currentPramaStrFlag, entry.getKey()))
+		   return true; 
+	  } 	
+	  return false;
+	}
+	public static void removeAllPramaStrMap(){
+		for(String key : pramaStrMap.keySet()){  
+				 pramaStrMap.remove(key);
+		  } 	
+		 
+	}
+	
+	public static List<String> getSpecificPrama(String currentPagePramaName){
+		//假定查询条件都是先类别再关键字
+		List<String> resultList = new ArrayList<String>();
+		String str = pramaStrMap.get(currentPagePramaName);
+		if(str != null){			
+			char[] charStr = str.toCharArray();
+			for(int i=0; i<charStr.length;i++){
+				if(charStr[i] == '=')
+				{
+					if(charStr[i+1] != '-')
+						resultList.add( Character.toString(charStr[i+1]));
+					else
+						resultList.add("-" + Character.toString(charStr[i+2]));
+				}
+			}
+			
+			int j=0;
+			while(j<charStr.length-1){
+				if(charStr[j] == '%'){
+					j++;
+					String query = "";
+					while(charStr[j] != '%' && j<charStr.length-1){
+						query = query + Character.toString(charStr[j]);
+						j++;
+					}
+					resultList.add(query);
+					if(charStr[j] == '%')
+						j++;
+				} else {
+					j++;
+				}
+			}
+			return resultList;
+		}
+		return null;
+	}
+}

@@ -1,0 +1,130 @@
+/**
+ * 
+ */
+package com.huaao.service.business;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+
+import com.huaao.dao.base.BaseDao;
+
+/** 
+* @ClassName: ContentService 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月8日 下午3:46:52 
+* 
+* 
+*/
+@Service
+public class OnlineJobService {
+
+	@Autowired
+	private BaseDao dao;
+	/** 
+	* @Title: queryList 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @return  参数说明 
+	* @return List    返回类型 
+	* @throws 
+	*/
+	public List queryWellComeForList(int lastStatus,int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "SELECT *,2 rtype from  sps_d_cure_apply where status = ?  and communityid =?";
+		return dao.queryForList(sql, new Object[]{lastStatus,communityid});
+	}
+	public List queryForList(int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "SELECT a.id apply_id, c.name pupil_community, a.keeperid apply_keeperid, a.status audit_status, a.description, a.hospital, a.createtime,cuser, b.* FROM sun_ejingwu.sps_d_cure_apply a left join sps_b_pupil_info b on a.pupilid = b.id left join jw_community c on b.communityid = c.id where a.communityid = ? and a.id is not null and b.id is not null order by a.id desc";
+		return dao.queryForList(sql,new Object[]{communityid});
+	}
+	public List queryForList(int lastStatus,int communityid) {
+		// TODO Auto-generated method stub
+		String sql = "SELECT a.id apply_id, c.name pupil_community, a.keeperid apply_keeperid, a.status audit_status, a.description, a.hospital, a.createtime,cuser, b.* FROM sun_ejingwu.sps_d_cure_apply a left join sps_b_pupil_info b on a.pupilid = b.id left join jw_community c on b.communityid = c.id  where a.status = ? and a.communityid=?";
+		return dao.queryForList(sql, new Object[]{lastStatus,communityid});
+	}
+	//获取之前的审计记录
+	public Map queryPreAuditRecord(int applyId){
+		String sql = "select *from sps_d_audit_record  where applyid = ? order by id";
+		
+		List list = dao.queryForList(sql, new Integer[]{applyId});
+		if(!list.isEmpty())return (Map)list.get(list.size()-1);
+		return null;
+	}
+	
+	public List queryAuditRecordForList(int applyId){
+		String sql = "select *from sps_d_audit_record  where applyid = ? order by id desc";
+		
+		List list = dao.queryForList(sql, new Integer[]{applyId});
+		return list;
+	}
+	/** 
+	* @Title: insert 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public void insertAuditRecord(Object[] objects) {
+		// TODO Auto-generated method stub
+		String sql = "insert into sps_d_audit_record  (communityid, type, 	applyid, audit, status, auditdate, remark, preid) values (?,?,?,?,?,?,?,?)";
+		dao.saveOrUpdate(sql, objects);
+		
+	}
+	/** 
+	* @Title: update 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects  参数说明 
+	* @return void    返回类型 
+	* @throws 
+	*/
+	public int update(Integer newStatus,String audits,Integer id,Integer oldStatus) {
+		// TODO Auto-generated method stub
+		String sql = "update sps_d_cure_apply set status=? ,audits=? where id = ? and status =?";
+		return dao.update(sql, new Object[]{newStatus,audits,id,oldStatus});
+		
+	}
+	/** 
+	* @Title: queryContentWith 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param id
+	* @param @return  参数说明 
+	* @return SqlRowSet    返回类型 
+	* @throws 
+	*/
+	public SqlRowSet queryWith(Integer id) {
+		// TODO Auto-generated method stub
+		
+		
+		String sql = "SELECT a.id apply_id, a.communityid apply_community_id, a.keeperid apply_keeperid, pupilid, status, auditid, audits, description, hospital, curetime, identifyresult, cureresult, curestatus, createtime,cuser, b.* FROM sun_ejingwu.sps_d_cure_apply a left join sps_b_pupil_info b on a.pupilid = b.id  where a.id=?";
+		return dao.queryForRowSet(sql,new Object[]{id});
+	}
+	/** 
+	* @Title: queryForListWhereIn 
+	* @Description: TODO(这里用一句话描述这个方法的作用) 
+	* @param @param objects
+	* @param @return  参数说明 
+	* @return List    返回类型 
+	* @throws 
+	*/
+	public List queryForListWhereIn(Object[] objects) {
+		String sql = "SELECT a.id apply_id, c.name pupil_community, a.keeperid apply_keeperid, a.status audit_status, a.description, a.hospital, a.createtime,cuser, b.* FROM sun_ejingwu.sps_d_cure_apply a left join sps_b_pupil_info b on a.pupilid = b.id left join jw_community c on b.communityid = c.id  where a.status in (?,?,?) and a.communityid=?";
+		return dao.queryForList(sql, objects);
+	}
+	
+	/**
+	 * 这里查询到这条消息消息用作与网上办事Word的基础数据
+	 * @param id
+	 * @return
+	 */
+	public List queryToidinfo(int id){
+		String sql=" select puil.id,jw.id as jwid,puil.name,puil.gender,puil.age,puil.idcard,puil.addr,puil.registeraddr,puil.nums,jw.name as jwname,jw.gender as jwgender,jw.idcard jwidcard,jw.address,jw.cellphone,cure.description,FROM_UNIXTIME(cure.createtime, '%Y年%m月%d日') AS createtime ,cure.workunit "
+				 +"	from sps_d_cure_apply cure LEFT JOIN sps_b_pupil_info puil on(cure.pupilid=puil.id) "
+				 +" left JOIN jw_user jw on(jw.id=cure.keeperid) where cure.id=?";
+		return dao.queryForList(sql,new Object[]{id});
+	}
+}

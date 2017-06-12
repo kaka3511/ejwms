@@ -1,0 +1,22 @@
+connection.driver_class=com.mysql.jdbc.Driver
+#connection.url=jdbc:mysql://192.168.7.102:3306/sun_ejingwu?useUnicode=true&characterEncoding=utf-8
+
+#\u6d4b\u8bd5\u670d\u52a1\u5668
+connection.url=jdbc:mysql://121.43.33.181:3306/sun_ejingwu?useUnicode=true&characterEncoding=utf-8
+#connection.url=jdbc:mysql://114.55.98.184:3306/sun_ejingwu?useUnicode=true&characterEncoding=utf-8
+
+connection.username=root
+#connection.password=root
+#connection.password=fc1982e045
+connection.password=huaaotest
+
+
+proxool.statistics=1m,15m,1h,1d
+proxool.minimum.connection.count=5
+proxool.maximum.connection.count=40
+proxool.simultaneous.build.throttle=30
+
+
+#notify.host = http://114.55.98.184/apis-sun
+notify.host = http://121.43.33.181/apis-sun
+#notify.host = http://192.168.7.6:8082

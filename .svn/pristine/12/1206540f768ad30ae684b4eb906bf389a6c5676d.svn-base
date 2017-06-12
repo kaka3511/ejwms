@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p" 
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xsi:schemaLocation="
+  http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/util
+  http://www.springframework.org/schema/util/spring-util.xsd
+  http://www.springframework.org/schema/context 
+  http://www.springframework.org/schema/context/spring-context.xsd
+  http://www.springframework.org/schema/mvc
+  http://www.springframework.org/schema/mvc/spring-mvc.xsd" >
+	
+	<!-- 默认的注解映射的支持 -->  
+    <mvc:annotation-driven validator="validator" conversion-service="conversion-service" />
+    <context:property-placeholder location="classpath:database.properties"/> 
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <!-- <property name="providerClass"  value="org.hibernate.validator.HibernateValidator"/> -->
+        <!--不设置则默认为classpath下的ValidationMessages.properties -->
+        <property name="validationMessageSource" ref="validatemessageSource"/>
+    </bean>
+    <bean id="conversion-service" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
+    <bean id="validatemessageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">  
+        <property name="basename" value="classpath:validatemessages"/>  
+        <property name="fileEncodings" value="utf-8"/>  
+        <property name="cacheSeconds" value="120"/>  
+	</bean> 
+    
+    <!-- 配置自定义过滤 -->
+    <mvc:interceptors>
+    	<!-- 国际化操作拦截器 如果采用基于（请求/Session/Cookie）则必需配置 --> 
+    	<!-- <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />   -->
+    	<!-- 如果不定义 mvc:mapping path 将拦截所有的URL请求 -->
+        <bean class="com.huaao.web.home.AuthInterceptor"></bean>
+       <!-- <mvc:interceptor>
+        	<mvc:mapping path="/**" />
+        	<mvc:exclude-mapping path="/plugins/**"/>
+        	<mvc:exclude-mapping path="/css/**"/>
+        	<mvc:exclude-mapping path="/files/**"/>
+        	<mvc:exclude-mapping path="/fonts/**"/>
+        	<mvc:exclude-mapping path="/images/**"/>
+        	<mvc:exclude-mapping path="/js/**"/>
+        	<mvc:exclude-mapping path="/tags/**"/>
+      	  <bean class="com.huaao.web.home.LogInterceptor"></bean>
+        </mvc:interceptor> -->
+    </mvc:interceptors>    
+    <!-- 如果当前请求为“/”时，则转发到“/home/hello” -->
+    <mvc:view-controller path="/" view-name="forward:/home/index"/> 
+    <!-- 静态资源映射 -->
+    <mvc:resources mapping="/js/**" location="/WEB-INF/js/" />
+    <mvc:resources mapping="/css/**" location="/WEB-INF/css/" />
+    <mvc:resources mapping="/fonts/**" location="/WEB-INF/fonts/" />
+    <mvc:resources mapping="/plugins/**" location="/WEB-INF/plugins/" />
+    <mvc:resources mapping="images/**" location="/WEB-INF/images/" />
+    <!-- 当上面要访问的静态资源不包括在上面的配置中时，则根据此配置来访问 -->
+    <mvc:default-servlet-handler/>
+
+	<!-- 开启controller注解支持 -->
+    <!-- use-default-filters="false" 只扫描指定的注解 -->
+    <context:component-scan base-package="com.huaao.web" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- bean name view resolver-->
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0"/>    
+    <!-- 根据客户端的不同的请求决定不同的 view进行响应, 如 /blog/1.json /blog/1.xml -->  
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" p:order="1">  
+        <!-- 设置为true以忽略对Accept Header的支持-->  
+        <!-- 扩展名至mimeType的映射,即 /user.json => application/json -->  
+        <property name="favorPathExtension" value="false"/>  
+        <!-- 用于开启 /userinfo/123?format=json 的支持 -->  
+        <property name="favorParameter" value="false"/>         
+        <property name="mediaTypes">  <!--favorPathExtension, favorParameter是true时才起作用  -->
+            <map>  
+               <!-- <entry key="wml" value="text/vnd.wap.wml"/>
+               <entry key="vnd" value="application/vnd.wap.xhtml+xml"/>
+               <entry key="xhtml" value="application/xhtml+xml"/> -->
+               <entry key="html" value="*"/>
+            </map>  
+         </property>  
+         <property name="viewResolvers">  
+            <list>  
+               <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                  <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+                  <property name="contentType" value="text/html"/>
+                  <property name="prefix" value="/WEB-INF/jsp/"/>
+                  <property name="suffix" value=".jsp"/>
+               </bean>
+           </list>  
+        </property>  
+    </bean>  
+    <!-- 默认的视图解析器 在上边的解析错误时使用 (默认使用html)- -->
+    <bean id="defaultViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:order="2">
+       <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+       <property name="contentType" value="text/html"/>        
+       <property name="prefix" value="/WEB-INF/jsp/"/>
+       <property name="suffix" value=".jsp"/>
+    </bean>
+    
+    <!-- 支持上传文件 -->  
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+	    <!-- 设置上传文件的最大尺寸为10MB -->  
+	    <property name="maxUploadSize">  
+	        <value>10485760</value>  
+	    </property>
+	    <property name="defaultEncoding"> 
+			<value>UTF-8</value> 
+		</property>
+    </bean>
+    <!-- SpringMVC在超出上传文件限制时，会抛出org.springframework.web.multipart.MaxUploadSizeExceededException -->  
+    <!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->  
+    <!-- 
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">  
+        <property name="exceptionMappings">  
+            <props>  -->
+                <!-- 遇到MaxUploadSizeExceededException异常时，自动跳转到/WEB-INF/jsp/error_fileupload.jsp页面 -->  
+              <!-- <prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">error_fileupload</prop>  
+            </props>   
+        </property>  
+    </bean>  -->
+    
+    <!-- 总错误处理-->
+	<bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
+		<property name="exceptionMappings">     
+             <props>     
+                 <prop key="java.lang.Exception">/home/error</prop>     
+                 <prop key="java.lang.Throwable">/home/error</prop>   
+                 <prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">/home/error</prop>      
+             </props>     
+         </property> 
+        <!-- 默认错误页面，当找不到上面mappings中指定的异常对应视图时，使用本默认配置 -->     
+    	<property name="defaultErrorView">   
+        	<value>/home/error</value> 
+    	</property> 
+    	<!-- 默认HTTP状态码 --> 
+    	<property name="defaultStatusCode">   
+        	<value>500</value> 
+   		 </property>    
+   		<!-- 设置日志输出级别，不定义则默认不输出警告等错误日志信息 --> 
+		<property name="warnLogCategory">   
+        	<value>org.springframework.web.servlet.handler.SimpleMappingExceptionResolver</value> 
+    	</property>    
+	</bean>
+</beans>

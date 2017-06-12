@@ -1,0 +1,550 @@
+/**
+ * 
+ */
+package com.huaao.web.business;
+
+
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.jasper.tagplugins.jstl.core.ForEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+
+import com.huaao.common.extension.DateTimeUtil;
+import com.huaao.common.extension.ExcelFormat;
+import com.huaao.common.extension.LogUtils;
+import com.huaao.common.extension.OSSUtil;
+import com.huaao.common.extension.RespCode;
+import com.huaao.common.extension.RespInfo;
+import com.huaao.common.utilities.Page;
+import com.huaao.model.business.AuditRecord;
+import com.huaao.model.home.AuthPassport;
+import com.huaao.model.home.SystemVariable;
+import com.huaao.model.home.UserInfo;
+import com.huaao.service.business.AssociateMgrService;
+import com.huaao.service.business.PoliceService;
+import com.huaao.service.business.PupilUpdateHistoryService;
+import com.huaao.service.system.DictionaryManageService;
+import com.huaao.web.home.AuthHelper;
+
+import jxl.write.Label;
+import jxl.write.WritableCell;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import net.sf.json.JSONObject;
+
+/** 
+* @ClassName: PoliceController 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月5日 下午2:58:42 
+* 
+* 
+*/
+@Controller@RequestMapping("/police")
+public class PoliceController {
+
+
+	@Autowired
+	PoliceService policeService;
+	
+	@Autowired
+	private AssociateMgrService  associateService;
+	
+	@Autowired
+	private PupilUpdateHistoryService pupilUpdateHistoryService;
+	
+	@Autowired
+	private DictionaryManageService dictionaryManageService;
+	
+	@AuthPassport@RequestMapping("/police")
+	public String index(HttpServletRequest request){
+		UserInfo currentUser = AuthHelper.getSessionUserAuth(request);
+		List pupilTypeList = dictionaryManageService.queryDictionaryListByParent("135", "",currentUser.getCommunityId());
+		request.setAttribute("pupilTypeList", pupilTypeList);
+		request.setAttribute("cuser", currentUser);
+		return "business/registerApply/index";
+	}
+	@AuthPassport@RequestMapping("/registerApply/view")
+	public String audit(String oper, int id, HttpServletRequest request){
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		request.setAttribute("oper", oper);
+		if(oper.equals("edit")||oper.equals("show")){
+			SqlRowSet apply = policeService.queryRegisterApplyWith(id);
+			if(apply.next()){
+				int pupilId = (Integer)apply.getInt("pupilId");
+				SqlRowSet pupil = policeService.queryPupilIWith(pupilId);
+				request.setAttribute("applyId", id);
+				request.setAttribute("pupilForAudit", pupil);
+				
+				List pupilTypeList = dictionaryManageService.queryDictionaryListByParent("135", "",cuser.getCommunityId());
+				request.setAttribute("pupilTypeList", pupilTypeList);
+				List list = policeService.queryAuditRecordForList(id);
+				int index = -1;
+				for (int i = 0; i < list.size(); i++) {
+					Map item = (Map)list.get(i);
+					Integer status = (Integer)item.get("status");
+					if(status==0){
+						index = i;
+						break;
+					}
+				}
+				
+				List flowList = list.subList(0, index+1);
+				
+				Collections.reverse(flowList);
+				request.setAttribute("auditFlow", flowList);
+			}
+		}
+
+		return "business/registerApply/audit";
+	}
+	
+	@AuthPassport@RequestMapping(value = "/registerApply/list" ,method= {RequestMethod.GET})
+	@ResponseBody
+	public RespInfo queryRegistApplyList(HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		policeService.queryForPage(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	/** 
+	* @Title: auditing 
+	* @Description: 更新自助登记相关表：sps_d_audit_record，sps_d_register_apply
+	* @param @return  参数说明 
+	* @return RespInfo    返回类型 
+	* @throws 
+	*/
+	@AuthPassport@RequestMapping("/registerApply/audit/update")
+	@ResponseBody
+	public RespInfo updateAuditInfo(int applyId, boolean reject,String reason,HttpServletRequest request){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo currentUser = AuthHelper.getSessionUserAuth(request);
+		int auditId = currentUser.getId(); //当前审批人
+		
+		SqlRowSet apply = policeService.queryRegisterApplyWith(applyId);
+		apply.next();
+		String audits = apply.getString("audits"); 
+		/*0已提交
+		6群干委派
+		1网格员审核
+		2民警审核
+		3关联关系
+		4网格员驳回
+		5民警驳回
+		7群干驳回
+		8已结束*/
+		int oldStatus = apply.getInt("status");
+		
+		Integer keeperId = apply.getInt("keeperid");
+		Integer pupilId = apply.getInt("pupilid");
+		
+		
+		//更新申请表
+		Integer  newStatus = -1;
+		if(reject){
+			newStatus = oldStatus+3;
+		}else{
+			if(oldStatus==1){
+				newStatus = oldStatus+1;
+			}else{
+				newStatus = 8;
+				associateService.insertAssocaite(new Object[]{pupilId,keeperId,1,currentUser.getName(),0});
+			}
+			
+		}
+			audits+="|"+auditId;
+		int count = policeService.updateRegisterApply(newStatus, audits,applyId,oldStatus);
+		
+		if(count>0){
+			//获取上一条审核记录
+			Map preRecord = policeService.queryPreAuditRecord(applyId);
+			Integer preId = preRecord==null?null:(Integer)preRecord.get("id");
+			
+			//插入新的审核记录
+			AuditRecord auditRecord = new AuditRecord();
+			auditRecord.setApplyId(applyId);
+			auditRecord.setType(1);//自助登记
+			auditRecord.setAudit(currentUser.getName());
+			auditRecord.setStatus(oldStatus);
+			auditRecord.setAuditDate(new Date().getTime()/1000);
+			auditRecord.setCommunityId(currentUser.getCommunityId());
+			auditRecord.setPreId(preId);
+			auditRecord.setRemark(reason);
+			
+			policeService.insertAuditRecord(auditRecord);
+		}
+		
+		LogUtils.saveLog(request, "自助登记-审核");
+		return respInfo;
+	}
+	
+	
+	@AuthPassport@RequestMapping("/updateInfo")
+	@ResponseBody
+	public RespInfo  updateInfo(HttpServletRequest request) throws ParseException{
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		
+		String id = request.getParameter("id");
+		String name = (String)request.getParameter("name");
+		String head_img = request.getParameter("head_img");
+		String gender = request.getParameter("gender");
+		String age = request.getParameter("age");
+		
+		String idcard = request.getParameter("idcard");
+		
+		String addr = request.getParameter("addr");
+		String type = request.getParameter("type");
+		String illness = request.getParameter("illness");
+		
+		SqlRowSet oldPupilInfo = policeService.queryPupilIWith(Integer.parseInt(id));
+		oldPupilInfo.next();
+		String nameOld = oldPupilInfo.getString("name");
+		String head_imgOld = oldPupilInfo.getString("head_img");
+		String genderOld = oldPupilInfo.getString("gender");
+		String ageOld = oldPupilInfo.getString("age");
+		
+		String idcardOld = oldPupilInfo.getString("idcard");
+		
+		String addrOld = oldPupilInfo.getString("addr");
+		String typeOld = oldPupilInfo.getString("type");
+		String illnessOld = oldPupilInfo.getString("illness");
+		
+		
+		policeService.updatePupil(name,head_img,gender,age,idcard,addr,type,illness,id);
+		LogUtils.saveLog(request, "自助登记-修改基本信息");
+		Date date = new Date();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分");
+		String dateStr = format.format(date);
+		
+		
+		
+		StringBuilder contentBuilder = new StringBuilder();
+		if(nameOld!=null&&!nameOld.equals(name)||(nameOld==null&&name!=null))contentBuilder.append("姓名："+nameOld+" => "+ name +"<br/>");
+		if(head_imgOld!=null&&!head_imgOld.equals(head_img)||(head_imgOld==null&&head_img!=null))contentBuilder.append("头像："+(StringUtils.isEmpty(head_imgOld)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-circle' style='width:80px;height:80px'>":"<img src='"+head_imgOld+"' class='img-circle' style='width:80px;height:80px'>")+" => "+ (StringUtils.isEmpty(head_img)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-circle' style='width:80px;height:80px'>":"<img src='"+head_img+"' class='img-circle' style='width:80px;height:80px'>") +"<br/>");
+		if(genderOld!=null&&!genderOld.equals(gender)||(genderOld==null&&gender!=null))contentBuilder.append("性别："+(genderOld.equals("0")?"女":"男")+" => "+ (gender.equals("0")?"女":"男") +"<br/>");
+		if(ageOld!=null&&!ageOld.equals(age)||(age==null&&age!=null))contentBuilder.append("年龄："+ageOld+" => "+ age +"<br/>");
+		if(idcardOld!=null&&!idcardOld.equals(idcard)||(idcardOld==null&&idcard!=null))contentBuilder.append("身份证："+idcardOld+" => "+ idcard +"<br/>");
+		if(addrOld!=null&&!addrOld.equals(addr)||(addrOld==null&&addr!=null))contentBuilder.append("住址："+addrOld+" => "+ addr +"<br/>");
+		
+		List pupilTypeList = dictionaryManageService.queryDictionaryListByParent("135", "",cuser.getCommunityId());
+		
+		String typeOldName = "";
+		String typeName = "";
+		for (Object object : pupilTypeList) {
+			Map<String, Object> map = (Map<String, Object>)object;
+			String dicName = map.get("dictionary_name").toString();
+			String dicCode = map.get("dictionary_code").toString();
+			if(typeOld.equals(dicCode))typeOldName = dicName;
+			if(type.equals(dicCode))typeName = dicName;
+			
+			
+		}
+		if(!typeOld.equals(type))contentBuilder.append("类型："+typeOldName+" => "+ typeName +"<br/>");
+		if(illnessOld!=null&&!illnessOld.equals(illness)||(illnessOld==null&&illness!=null))contentBuilder.append("病史："+illnessOld+" => "+ illness +"<br/>");
+		
+		
+		if(contentBuilder.length()>0){
+			
+			pupilUpdateHistoryService.insert(1, Integer.parseInt(id), cuser.getId(), cuser.getName(), dateStr+" "+cuser.getName()+" 修改了<br/>"+contentBuilder.toString(), date.getTime()/1000, 1);
+		}
+		
+		return resp;
+	}
+	//修改身份证照片
+	@AuthPassport@RequestMapping("/updateImg")
+	@ResponseBody
+	public RespInfo  updateImg(HttpServletRequest request) throws ParseException{
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		RespInfo resp = new RespInfo(RespCode.Success.code, "");
+		String id = request.getParameter("id");
+		String idcard_img1 = request.getParameter("idcard_img1");
+		String idcard_img2 = request.getParameter("idcard_img2");
+		String idcard_img3 = request.getParameter("idcard_img3");
+		
+		String number1 = request.getParameter("number1");
+		String number2 = request.getParameter("number2");
+		String number3 = request.getParameter("number3");
+		
+		SqlRowSet oldPupilInfo = policeService.queryPupilIWith(Integer.parseInt(id));
+		oldPupilInfo.next();
+		String imgsOld = oldPupilInfo.getString("imgs");
+		String numsOld = oldPupilInfo.getString("nums");
+		
+		String idcard_img1Old = "";
+		String idcard_img2Old = "";
+		String idcard_img3Old = "";
+		if(!StringUtils.isEmpty(imgsOld)){
+			String[] imgArr = imgsOld.split(",",-1);
+			idcard_img1Old = imgArr[0];
+			idcard_img2Old = imgArr[1];
+			idcard_img3Old = imgArr[2];
+		}
+		
+		String number1Old = "";
+		String number2Old = "";
+		String number3Old = "";
+		
+		if(!StringUtils.isEmpty(numsOld)){
+			String[] numArr = numsOld.split(",",-1);
+			number1Old = numArr[0];
+			number2Old = numArr[1];
+			number3Old = numArr[2];
+		}
+		
+		Date date = new Date();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分");
+		String dateStr = format.format(date);
+		StringBuilder contentBuilder = new StringBuilder();
+		
+		if(!number1Old.equals(number1))contentBuilder.append("医保证号："+number1Old+" => "+number1+"<br/>");
+		if(!idcard_img1Old.equals(idcard_img1))contentBuilder.append("医保证："+(StringUtils.isEmpty(idcard_img1Old)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img1Old+"' class='img-rounded' style='width:200px;height:100px'>")+" => "+ (StringUtils.isEmpty(idcard_img1)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img1+"' class='img-rounded' style='width:200px;height:100px'>") +"<br/>");
+		if(!number2Old.equals(number2))contentBuilder.append("医保证号："+number2Old+" => "+number2+"<br/>");
+		if(!idcard_img2Old.equals(idcard_img2))contentBuilder.append("低保证："+(StringUtils.isEmpty(idcard_img2Old)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img2Old+"' class='img-rounded' style='width:200px;height:100px'>")+" => "+ (StringUtils.isEmpty(idcard_img2)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img2+"' class='img-rounded' style='width:200px;height:100px'>") +"<br/>");
+		if(!number3Old.equals(number3))contentBuilder.append("医保证号："+number3Old+" => "+number3+"<br/>");
+		if(!idcard_img3Old.equals(idcard_img3))contentBuilder.append("残疾证："+(StringUtils.isEmpty(idcard_img3Old)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img3Old+"' class='img-rounded' style='width:200px;height:100px'>")+" => "+ (StringUtils.isEmpty(idcard_img3)?"<img src='http://huaao2016.oss-cn-hangzhou.aliyuncs.com/pupil/ygdefault.png' class='img-rounded' style='width:200px;height:100px'>":"<img src='"+idcard_img3+"' class='img-rounded' style='width:200px;height:100px'>") +"<br/>");
+		
+		
+		String imgs = idcard_img1+","+idcard_img2+","+idcard_img3;
+		String nums = number1+","+number2+","+number3;
+		policeService.updatePupilImgs(imgs,nums,id);
+		LogUtils.saveLog(request, "自助登记-修改三证");
+		if(contentBuilder.length()>0){
+			
+			pupilUpdateHistoryService.insert(1, Integer.parseInt(id), cuser.getId(), cuser.getName(), dateStr+" "+cuser.getName()+" 修改了<br/>"+contentBuilder.toString(), date.getTime()/1000, 1);
+		}
+		
+		return resp;
+	}
+	
+	/**
+	 * 图片上传
+	 * @throws IOException 
+	 */
+    @AuthPassport@RequestMapping(value = "/uploadImg", method = {RequestMethod.POST})
+	public void uploadImg(@RequestParam(value = "file") CommonsMultipartFile file,HttpServletRequest request,HttpServletResponse response) throws IOException{
+		UserInfo user =AuthHelper.getSessionUserAuth(request);
+		String img ="";
+		String flag = "";
+		JSONObject jo = new JSONObject();
+    	if (!file.isEmpty()) {
+    		String pathName=file.getFileItem().getName();
+            String prefix=pathName.substring(pathName.lastIndexOf(".")+1);
+            String fileName = "P_"+DateTimeUtil.getCurrentDate("yyyyMMddHHmmssSSS")+"."+prefix;
+    		flag = OSSUtil.uploadFile(file, fileName);
+    	    img = "http://"+SystemVariable.DomainName_OSS+"/"+fileName;
+		}
+    	jo.element("flag", flag);
+    	jo.element("img", img);
+    	response.setContentType("text/html;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter pw = response.getWriter();
+		pw.print(jo);
+		pw.flush();
+    }
+    @AuthPassport
+    @RequestMapping("listUpdateHistory/{pupilId}")
+    @ResponseBody
+    public RespInfo listUpdateHistory(@PathVariable int pupilId){
+    	RespInfo resp = new RespInfo(RespCode.Success.code, "");
+    	List list = pupilUpdateHistoryService.queryForList(pupilId);
+    	resp.setData(list);
+    	return resp;
+    }
+    
+   
+	@AuthPassport
+	@RequestMapping("/downloadExclefile")
+    public ResponseEntity<byte[]> downloadExclefile(String keyword,String type_query,String status_query,String gender_query,HttpServletRequest req ,HttpServletResponse resp){
+    	UserInfo cuser = AuthHelper.getSessionUserAuth(req);
+    	List<Map<String, Object>> list=new ArrayList<Map<String, Object>>();
+    	if(StringUtils.isEmpty(keyword)||keyword==null){
+    		list=policeService.queryToCommunityid(cuser.getCommunityId(),type_query,status_query,gender_query);
+    	}else{
+    		list=policeService.queryToCommunityidByKeyword(cuser.getCommunityId(),keyword,type_query,status_query,gender_query);
+    	}
+    	
+    	
+    	WritableWorkbook copy=null;
+        File file =null;
+        String path=req.getSession().getServletContext().getRealPath("/WEB-INF");
+        String newfilePath=path+"/files/Copyfile/"+System.currentTimeMillis()+".xls";
+		try {
+			
+			file=new File(newfilePath);
+			 copy=ExcelFormat.copyfileExcel(path+"/files/downloadExclefile.xls",file);
+			 WritableSheet sheet = copy.getSheet(0);
+			 
+			 for (int j=0;j<list.size();j++) {
+				 Label qinghua=null;
+				 int index=j+3;
+				for (int i = 0; i < 17; i++) {
+					WritableCell cell = sheet.getWritableCell(i,3);	
+					switch (i) {
+					case 0:
+						 qinghua = new Label(i,index,String.valueOf(1+j),cell.getCellFormat());
+						break;
+					case 1:
+						//名字
+						Object name=list.get(j).get("name");
+						 qinghua = new Label(i,index,name==null?"":name.toString(),cell.getCellFormat());
+						break;
+					case 2:
+						//性别
+						Object gender=list.get(j).get("gender"); 
+						 qinghua = new Label(i,index,gender==null?"":gender.toString(),cell.getCellFormat());
+						break;
+					case 3:
+						//身份证号
+						Object idcard=list.get(j).get("idcard");
+						 qinghua = new Label(i,index,idcard==null?"":idcard.toString(),cell.getCellFormat());
+						 break;
+					case 4:
+						//住址
+						Object addr=list.get(j).get("addr");
+						 qinghua = new Label(i,index,addr==null?"":addr.toString(),cell.getCellFormat());
+						break;
+					case 5:
+						//患者手机号
+						Object cellPhone=list.get(j).get("cellphone");
+						System.out.println("cellPhone:"+cellPhone);
+						 qinghua = new Label(i,index,cellPhone==null?"":cellPhone.toString(),cell.getCellFormat());
+						break;
+					case 6:
+						//医保号
+						Object nums=list.get(j).get("nums");
+						 qinghua = new Label(i,index,nums==null?"":"".equals(list.get(j).get("nums").toString())?"":list.get(j).get("nums").toString().split(",")[0],cell.getCellFormat());
+						break;
+					case 7:
+						//是否是低保户
+						Object dibao=list.get(j).get("nums");
+//						"".equals([1])?"否":"是"
+						String notdibao=null;
+						if(dibao!=null){
+							notdibao=list.get(j).get("nums").toString().split(",")[1];
+						}
+						 qinghua = new Label(i,index,(notdibao==null||notdibao.trim().equals(""))?"否":"是",cell.getCellFormat());
+						break;
+					case 8:
+						//低保号
+						Object Notdibao=list.get(j).get("nums");
+						 qinghua = new Label(i,index,Notdibao==null?"":"".equals(list.get(j).get("nums").toString().split(",")[1])?"":list.get(j).get("nums").toString().split(",")[1],cell.getCellFormat());
+						break;
+					case 9:
+						//残疾人类型
+						 Object type=list.get(j).get("type");
+//						 qinghua = new Label(i,index,type!=null?type.toString():"",cell.getCellFormat());
+						 qinghua = new Label(i,index,"",cell.getCellFormat());
+						break;	
+					case 10:
+						//残疾人类型
+						//低保号
+						Object canji=list.get(j).get("nums");
+						 qinghua = new Label(i,index,canji==null?"":"".equals(list.get(j).get("nums").toString().split(",")[2])?"":list.get(j).get("nums").toString().split(",")[2],cell.getCellFormat());
+						break;
+					case 11:
+						 qinghua = new Label(i,index,"",cell.getCellFormat());
+						break;
+					case 12:
+						//监护人姓名
+						Object jwname=list.get(j).get("jwname");
+						 qinghua = new Label(i,index,jwname==null?"":jwname.toString(),cell.getCellFormat());
+						break;
+					case 13:
+						//监护人姓名
+						Object jwidcard=list.get(j).get("jwidcard");
+						 qinghua = new Label(i,index,jwidcard==null?"":jwidcard.toString(),cell.getCellFormat());
+						break;
+					case 14:
+						//监护人姓名
+						Object workunit=list.get(j).get("workunit");
+						 qinghua = new Label(i,index,workunit==null?"":workunit.toString(),cell.getCellFormat());
+						break;
+					case 15:
+						//监护人姓名
+						Object jwaddress=list.get(j).get("jwaddress");
+						System.out.println("jwaddress:"+jwaddress);
+						String [] add=jwaddress==null?new String [3]:jwaddress.toString().split(";");
+						 qinghua = new Label(i,index,add[2],cell.getCellFormat());
+						break;
+					case 16:
+						//监护人姓名
+						Object usercellphone=list.get(j).get("usercellphone");
+						 qinghua = new Label(i,index,usercellphone==null?"":usercellphone.toString(),cell.getCellFormat());
+						break;
+
+						
+					}
+					sheet.addCell(qinghua);
+				}
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				copy.write();
+				copy.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		
+		}
+		try {
+		File resultfile=new File(newfilePath);
+		HttpHeaders headers = new HttpHeaders();
+		String  time=System.currentTimeMillis()+"";
+		headers.setContentDispositionFormData("attachment", time+".xls");   
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        if(file!=null){
+		
+			return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(resultfile),    
+			        headers, HttpStatus.CREATED);
+        }else{
+        	return null;
+        }
+        
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
+		return null;
+    	
+    }
+   
+}
+

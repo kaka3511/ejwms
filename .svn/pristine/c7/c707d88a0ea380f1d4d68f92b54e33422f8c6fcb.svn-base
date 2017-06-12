@@ -1,0 +1,106 @@
+package com.huaao.service.system;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.huaao.dao.base.BaseDao;
+
+/** 
+* @ClassName: flowService 
+* @Description: 流程节点 
+* @author yuhai
+* @date 2017年4月10日 
+* 
+* 
+*/
+@Service
+public class FlowNodeService {
+	@Autowired
+	private BaseDao baseDao;
+	private String sql=null;
+	
+	public List findAll() {
+		sql = "select * from sps_s_flow_node where is_valid=1";
+		return baseDao.queryForList(sql);
+	}
+
+	@Transactional
+	public void save(String name, Integer flowId) {
+		sql = "SELECT MAX(id) FROM sps_s_flow_node WHERE flowId=?";
+		Integer preId = baseDao.queryForInt(sql, new Object[]{flowId});
+		if(preId == 0) {
+			preId = null;
+		}
+		sql = "SELECT MAX(`index`) FROM sps_s_flow_node WHERE flowId=?;";  
+		int index = baseDao.queryForInt(sql, new Object[]{flowId}) + 1;
+		sql="INSERT INTO sps_s_flow_node(NAME, preId, nextId, flowId, `index`, is_valid) VALUES(?, ?, NULL, ?, ?, 1);";
+		Integer nextId = baseDao.save(sql, new Object[]{name, preId, flowId, index});
+		sql="UPDATE sps_s_flow_node SET nextId = ? where id= ?;";
+		baseDao.update(sql, new Object[]{nextId, preId});
+	}
+	
+	@Transactional
+	public void update(String name, Integer id) {
+		sql = "update sps_s_flow_node set name=? where id=?;";
+		baseDao.update(sql, new Object[] {name, id});
+	}
+	
+	@Transactional
+	public int delete(Integer id) {
+		sql = "SELECT nextId FROM sps_s_flow_node WHERE id = ?;";
+		Integer nextId = baseDao.queryForInt(sql, new Object[]{id});
+		if(nextId != 0) {
+			return 0;
+		}
+		sql = "SELECT preId FROM sps_s_flow_node WHERE id = ?;";
+		int preId =  baseDao.queryForInt(sql, new Object[] {id});
+		sql = "UPDATE sps_s_flow_node SET nextId = NULL WHERE id = ?";
+		baseDao.update(sql, new Object[] {preId});
+		sql = "delete from sps_s_flow_node where id = ?";
+		baseDao.update(sql, new Object[] {id});
+		sql = "DELETE FROM sps_s_flownode_user WHERE flownode_id = ?;";
+		baseDao.update(sql, new Object[] {id});
+		return 1;
+	}
+	
+	public List findNodesById(Integer id) {
+		sql = "SELECT * FROM sps_s_flow_node WHERE flowId=? and is_valid=1;";
+		return (List)baseDao.queryForList(sql, new Object[] {id});
+	}
+
+	public List load(Integer id) {
+		sql = "SELECT * FROM sps_s_flow_node WHERE id = ?;";
+		List list = (List)baseDao.queryForList(sql, new Object[] {id});
+		return list;
+	}
+	
+	public List findByFlowNode(Integer flowNodeId) {
+		sql = "SELECT distinct u.*,'true' AS checks FROM jw_user u LEFT JOIN sps_s_flownode_user fu ON(u.id=fu.user_id) WHERE fu.flownode_id=?;";
+		return (List)baseDao.queryForList(sql, new Object[] {flowNodeId});
+	}
+	
+	public List findByNameOrPhone(Integer flowNodeId, String name, String cellphone) {
+		sql = "SELECT u.*,'true' AS checks FROM jw_user u LEFT JOIN sps_s_flownode_user fu ON(u.id=fu.user_id) WHERE fu.flownode_id=? AND (NAME LIKE '%?%' OR cellphone LIKE '%?%');";
+		return (List)baseDao.queryForList(sql, new Object[] {flowNodeId, name, cellphone});
+	}
+	
+	public List findAllUser() {
+		sql = "SELECT * FROM jw_user WHERE NAME != ' ' AND id NOT IN (SELECT user_id FROM sps_s_flownode_user) ORDER BY CONVERT(NAME USING gbk) COLLATE gbk_chinese_ci ASC;";
+		return (List)baseDao.queryForList(sql);
+	}
+	
+	@Transactional
+	public void saveUser(Integer userId, Integer flowNodeId) {
+		sql = "INSERT INTO sps_s_flownode_user(flownode_id, user_id, is_valid) VALUES(?, ?, 1);";
+		baseDao.update(sql, new Object[] {flowNodeId, userId});
+	}
+	
+	@Transactional
+	public void deleteUser(Integer id, Integer flowNodeId) {
+		sql = "DELETE FROM sps_s_flownode_user WHERE flownode_id = ? AND user_id=?;";
+		baseDao.update(sql, new Object[] {flowNodeId, id});
+	}
+}

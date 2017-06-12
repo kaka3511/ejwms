@@ -1,0 +1,127 @@
+package com.huaao.service.system;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.huaao.dao.base.BaseDao;
+
+/** 
+* @ClassName: flowService 
+* @Description: 流程节点 
+* @author yuhai
+* @date 2017年4月10日 
+* 
+* 
+*/
+@Service
+public class FlowNodeService {
+	@Autowired
+	private BaseDao baseDao;
+	private String sql=null;
+	
+	public List findAll() {
+		sql = "select * from sps_s_flow_node where is_valid=1";
+		return baseDao.queryForList(sql);
+	}
+	
+	public List findByFlowId(Integer flowId) {
+		sql = "SELECT * FROM sps_s_dictionary d "
+				+ "WHERE d.dictionary_parent_id = (SELECT id FROM sps_s_dictionary WHERE dictionary_code=(SELECT CODE FROM sps_s_flow WHERE id = ?) "
+				+ "AND dictionary_parent_id=0);";
+		return baseDao.queryForList(sql, new Object[]{flowId});
+	}
+	
+	@Transactional
+	public int save(Integer id) {
+		sql = "SELECT id FROM sps_s_flow WHERE CODE = (SELECT dictionary_code FROM sps_s_dictionary "
+				+ "WHERE id = (SELECT dictionary_parent_id FROM sps_s_dictionary WHERE id = ?));";
+		int flowId = baseDao.queryForInt(sql, new Object[] {id});
+		
+		sql = "SELECT MAX(`index`) FROM sps_s_flow_node WHERE flowId=?;";  
+		int index = baseDao.queryForInt(sql, new Object[]{flowId}) + 1;
+		
+		sql = "SELECT * FROM sps_s_dictionary WHERE id=?;";
+		List<Map<String, Object>> list2 = baseDao.queryForList(sql, new Object[] {id});
+		Map<String, Object> map2 = list2.get(0);
+		String name = (String) map2.get("dictionary_name");
+		sql = "select name from sps_s_flow_node;";
+		List<Map<String, Object>> list3 = baseDao.queryForList(sql);
+		for(Map<String, Object> map: list3) {
+			String name2 = (String) map.get("name");
+			if(name.equals(name2)) {
+				return 0;
+			}
+		}
+		String useridentity = (String) map2.get("dictionary_code");
+		String type = (String) map2.get("dictionary_value"); 
+		sql = "INSERT INTO sps_s_flow_node(NAME, flowId, `INDEX`, is_valid, useridentity, TYPE) values(?,?,?,1,?,?);";
+		return baseDao.save(sql, new Object[] {name, flowId, index, useridentity, type});
+	}
+	
+	@Transactional
+	public void update(String name, Integer id) {
+		sql = "update sps_s_flow_node set name=? where id=?;";
+		baseDao.update(sql, new Object[] {name, id});
+	}
+	
+	@Transactional
+	public void delete(Integer id) {
+		sql = "delete from sps_s_flow_node where id = ?;";
+		baseDao.update(sql, new Object[] {id});
+		sql = "DELETE FROM sps_s_flownode_user WHERE flownode_id=?;";
+		baseDao.update(sql, new Object[] {id});
+	}
+
+	public List findNodesById(Integer id) {
+		sql = "SELECT * FROM sps_s_flow_node WHERE flowId=? and is_valid=1;";
+		return (List)baseDao.queryForList(sql, new Object[] {id});
+	}
+
+	public List load(Integer id) {
+		sql = "SELECT * FROM sps_s_flow_node WHERE id = ?;";
+		List list = (List)baseDao.queryForList(sql, new Object[] {id});
+		return list;
+	}
+	
+	public List findByFlowNode(Integer flowNodeId) {
+		sql = "SELECT distinct u.*,'true' AS checks FROM jw_user u LEFT JOIN sps_s_flownode_user fu ON(u.id=fu.user_id) WHERE fu.flownode_id=? ORDER BY CONVERT(NAME USING gbk) COLLATE gbk_chinese_ci ASC;";
+		return (List)baseDao.queryForList(sql, new Object[] {flowNodeId});
+	}
+	
+	public List findByNameOrPhone(Integer flowNodeId, String name, String cellphone) {
+		sql = "SELECT u.*,'true' AS checks FROM jw_user u LEFT JOIN sps_s_flownode_user fu ON(u.id=fu.user_id) WHERE fu.flownode_id=? AND (NAME LIKE '%?%' OR cellphone LIKE '%?%');";
+		return (List)baseDao.queryForList(sql, new Object[] {flowNodeId, name, cellphone});
+	}
+	
+	public List findAllUser() {
+		sql = "SELECT * FROM jw_user WHERE NAME != ' ' AND id NOT IN (SELECT user_id FROM sps_s_flownode_user) ORDER BY CONVERT(NAME USING gbk) COLLATE gbk_chinese_ci ASC;";
+		return (List)baseDao.queryForList(sql);
+	}
+	
+	public List selectNodeFromDic() {
+		sql = "SELECT * FROM sps_s_dictionary WHERE dictionary_parent_id = (SELECT id FROM sps_s_dictionary WHERE dictionary_name='业务流程类型') AND dictionary_code NOT IN (SELECT CODE FROM sps_s_flow);";
+		return baseDao.queryForList(sql);
+	}
+	
+	@Transactional
+	public Integer saveUser(Integer userId, Integer flowNodeId) {
+		sql = "SELECT * FROM sps_s_flownode_user WHERE flownode_id=? AND user_id=?;";
+		List<Map<String,Object>> list = baseDao.queryForList(sql, new Object[] {flowNodeId, userId});
+		if(!list.isEmpty()) {
+			return 0;
+		}
+		sql = "INSERT INTO sps_s_flownode_user(flownode_id, user_id, is_valid) VALUES(?, ?, 1);";
+		baseDao.update(sql, new Object[] {flowNodeId, userId});
+		return 1;
+	}
+	
+	@Transactional
+	public void deleteUser(Integer id, Integer flowNodeId) {
+		sql = "DELETE FROM sps_s_flownode_user WHERE flownode_id = ? AND user_id=?;";
+		baseDao.update(sql, new Object[] {flowNodeId, id});
+	}
+}

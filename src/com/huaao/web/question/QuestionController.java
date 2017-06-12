@@ -1,0 +1,214 @@
+/**
+ * 
+ */
+package com.huaao.web.question;
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+
+import com.huaao.common.extension.DateTimeUtil;
+import com.huaao.common.extension.LogUtils;
+import com.huaao.common.extension.OSSUtil;
+import com.huaao.common.extension.RespCode;
+import com.huaao.common.extension.RespInfo;
+import com.huaao.common.utilities.Page;
+import com.huaao.common.utilities.PramaStrHelper;
+import com.huaao.model.business.AuditRecord;
+import com.huaao.model.home.AuthPassport;
+import com.huaao.model.home.SystemVariable;
+import com.huaao.model.home.UserInfo;
+import com.huaao.service.business.PoliceService;
+import com.huaao.service.question.QuestionService;
+import com.huaao.web.home.AuthHelper;
+
+import net.sf.json.JSONObject;
+
+/** 
+* @ClassName: PoliceController 
+* @Description: TODO(这里用一句话描述这个类的作用) 
+* @author lj
+* @date 2016年8月5日 下午2:58:42 
+* 
+* 
+*/
+@Controller@RequestMapping("/question")
+public class QuestionController {
+
+	@Autowired
+	private QuestionService  questionService;
+	
+	@AuthPassport@RequestMapping("/gamePaper")
+	public String gamePaper(HttpServletRequest request){
+		HttpSession session = request.getSession(true);
+		session.setAttribute("menuSession","YES");
+		return "question/gamePaper/index";
+	}
+	
+	@AuthPassport@RequestMapping("/gamePaper2")
+	public String gamePaper2(HttpServletRequest request){
+		return "question/gamePaper/index";
+	}
+	@AuthPassport@RequestMapping("/healthTestPaper")
+	public String healthTestPaper(){
+		
+		return "question/healthTestPaper/index";
+	}
+	@AuthPassport@RequestMapping("/view/{path}")
+	public String view(@PathVariable String path,String oper, Integer id,HttpServletRequest request){
+		String page = "question/"+path+"/mgr";
+		request.setAttribute("oper", oper);
+		if(oper.equals("edit")||oper.equals("edit")){
+			SqlRowSet question = questionService.queryWith(id);
+			request.setAttribute("question", question);
+		}
+		return page;
+	}
+	
+	@AuthPassport@RequestMapping(value = "/list1" )
+	@ResponseBody
+	public RespInfo list(HttpServletRequest request ){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		HttpSession session = request.getSession(true);
+		String o= (String) session.getAttribute("menuSession");
+		if(o.equals("YES")){
+			PramaStrHelper.removeAllPramaStrMap();
+			session.setAttribute("menuSession","NO");
+		}
+		else{
+			session.setAttribute("menuSession","NO");
+			if(pager.getPramaStr() != null){
+				PramaStrHelper.pramaStrMap.put("question1PramaStrMap", pager.getPramaStr());
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("question1PramaStrMap"));
+			}
+			else
+				pager.setPramaStr(PramaStrHelper.pramaStrMap.get("question1PramaStrMap"));
+		}
+		questionService.queryForQuestion1Page(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	
+	@AuthPassport@RequestMapping(value = "/list2" )
+	@ResponseBody
+	public RespInfo list2(HttpServletRequest request ){
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		Page pager = new Page(request);
+		HashMap<String, Object> map=new HashMap<String, Object>();
+		questionService.queryForQuestion2Page(cuser.getCommunityId(),pager);
+		map.put("records", pager.getTotalRows());
+		map.put("pages", pager.getTotalPages());
+		map.put("rows", pager.getResultList());
+		respInfo.setData(map);
+		return respInfo;
+	}
+	@AuthPassport@RequestMapping("/mgr")
+	@ResponseBody
+	public RespInfo mgr(HttpServletRequest request){
+		UserInfo cuser = AuthHelper.getSessionUserAuth(request);
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		
+		String oper = request.getParameter("oper");
+		String qbType = request.getParameter("qbType");
+		String[] answer = request.getParameterValues("answer");
+		String answerStr = "";
+		if(answer!=null){
+			for (String string : answer) {
+				answerStr+=string+",";
+			}
+			answerStr = answerStr.substring(0, answerStr.length()-1);
+		}
+		
+		String option0 = request.getParameter("option0");
+		String score0 = request.getParameter("score0");
+		String option1 = request.getParameter("option1");
+		String score1 = request.getParameter("score1");
+		String option2 = request.getParameter("option2");
+		String score2 = request.getParameter("score2");
+		String option3 = request.getParameter("option3");
+		String score3 = request.getParameter("score3");
+		String option4 = request.getParameter("option4");
+		String score4 = request.getParameter("score4");
+		String option5 = request.getParameter("option5");
+		String score5 = request.getParameter("score5");
+		if(oper.equals("add")){
+
+			questionService.insert(new Object[]{
+					cuser.getCommunityId(),
+					request.getParameter("question"),
+					StringUtils.isEmpty(option0)?null:"A、"+option0,score0,
+					StringUtils.isEmpty(option1)?null:"B、"+option1,score1,
+					StringUtils.isEmpty(option2)?null:"C、"+option2,score2,
+					StringUtils.isEmpty(option3)?null:"D、"+option3,score3,
+					StringUtils.isEmpty(option4)?null:"E、"+option4,score4,
+					StringUtils.isEmpty(option5)?null:"F、"+option5,score5,
+					answerStr,
+					request.getParameter("type"),
+					qbType
+			});
+			LogUtils.saveLog(request, (qbType.equals("1")?"游戏试题-":"健康测评试题-")+"添加");
+		}else if(oper.equals("edit")){
+			questionService.update(new Object[]{
+					request.getParameter("question"),
+					StringUtils.isEmpty(option0)?null:"A、"+option0,score0,
+							StringUtils.isEmpty(option1)?null:"B、"+option1,score1,
+							StringUtils.isEmpty(option2)?null:"C、"+option2,score2,
+							StringUtils.isEmpty(option3)?null:"D、"+option3,score3,
+							StringUtils.isEmpty(option4)?null:"E、"+option4,score4,
+							StringUtils.isEmpty(option5)?null:"F、"+option5,score5,
+					answerStr,
+					request.getParameter("type"),
+					request.getParameter("id"),
+			});
+			LogUtils.saveLog(request, (qbType.equals("1")?"游戏试题-":"健康测评试题-")+"修改");
+		}else if(oper.equals("del")){
+			questionService.del(new Object[]{request.getParameter("id")});
+			respInfo.setData(request.getParameter("id"));
+			LogUtils.saveLog(request, (qbType.equals("1")?"游戏试题-":"健康测评试题-")+"删除");
+		}
+		return respInfo;
+	}
+	
+    
+    /**
+     * 删除
+     */
+	@AuthPassport@RequestMapping(value="/del/{id}")
+	@ResponseBody
+	public RespInfo del(@PathVariable int id,HttpServletRequest request) throws Exception{
+		RespInfo respInfo = new RespInfo(RespCode.Success.code, "");
+		this.questionService.del(new Object[]{id}); 
+		LogUtils.saveLog(request, "题库管理-删除");
+		respInfo.setData(id);
+		return respInfo;
+      }
+	
+}
